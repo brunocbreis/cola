@@ -25,11 +25,19 @@ const inline = (s) =>
   esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
 
 // Blocks: paragraph, "> note", and | tables | (rendered as the key/description grid).
+// A block may open with [touch] or [desktop] to show only on that kind of device.
 function blocks(body) {
   const out = [];
   for (const chunk of body.split(/\r?\n\s*\r?\n/)) {
-    const lines = chunk.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    let lines = chunk.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     if (!lines.length) continue;
+
+    let only = "";
+    const mk = lines[0].match(/^(>\s*)?\[(touch|desktop)\]\s*/i);
+    if (mk) {
+      only = ` only-${mk[2].toLowerCase()}`;
+      lines[0] = (mk[1] || "") + lines[0].slice(mk[0].length);
+    }
 
     if (lines[0].startsWith("|")) {
       const rows = lines
@@ -37,14 +45,14 @@ function blocks(body) {
         .slice(1)
         .map((l) => l.replace(/^\||\|$/g, "").split("|").map((c) => c.trim()));
       out.push(
-        `<div class="keys">` +
+        `<div class="keys${only}">` +
           rows.map(([k, v]) => `<kbd>${inline(k)}</kbd><p>${inline(v)}</p>`).join("") +
           `</div>`,
       );
     } else if (lines[0].startsWith(">")) {
-      out.push(`<p class="note">${inline(lines.map((l) => l.replace(/^>\s?/, "")).join(" "))}</p>`);
+      out.push(`<p class="note${only}">${inline(lines.map((l) => l.replace(/^>\s?/, "")).join(" "))}</p>`);
     } else {
-      out.push(`<p class="say">${inline(lines.join(" "))}</p>`);
+      out.push(`<p class="say${only}">${inline(lines.join(" "))}</p>`);
     }
   }
   return out.join("\n      ");
@@ -158,10 +166,14 @@ function build() {
       id,
       hints: parseHints(meta.hints),
       hints_active: parseHints(meta.hints_active),
+      hints_touch: parseHints(meta.hints_touch),
       prompt: meta.prompt || "",
       prompt_active: meta.prompt_active || "",
+      prompt_touch: meta.prompt_touch || "",
       prompt_kbd: meta.prompt_kbd || "",
+      prompt_kbd_touch: meta.prompt_kbd_touch || "",
       live: /^y/i.test(meta.live || ""),
+      widget: !!meta.widget,
       ...Object.fromEntries(
         Object.entries(meta).filter(([k]) => k.startsWith("label_") || k.startsWith("note_")),
       ),

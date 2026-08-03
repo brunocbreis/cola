@@ -5,7 +5,10 @@ eyebrow: Screen 3 · the plan
 heading: Simulate investment day
 live: yes
 hints: ↓ ↑ = screens | ← → = how many orders | Return = type an amount
+hints_touch: tap the amount = edit it | drag the bar = how many orders
 prompt: live — this one calculates as you type
+prompt_touch: live — tap the amount, drag the bar
+prompt_kbd_touch: Live
 prompt_kbd: ← →
 label_invest: To invest
 label_order: order

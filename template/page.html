@@ -19,12 +19,36 @@
   body{background:var(--bg);color:var(--primary);font-family:var(--sans);font-size:15px;line-height:1.5}
   .tnum{font-variant-numeric:tabular-nums}
 
-  .deck{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+  .deck{height:100vh;height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;
+        scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
   .deck::-webkit-scrollbar{width:0}
-  .screen{min-height:100vh;scroll-snap-align:center;display:flex;align-items:center;
+  .screen{min-height:100vh;min-height:100dvh;scroll-snap-align:center;display:flex;align-items:center;
           padding:64px 28px calc(var(--bar) + 48px)}
   .in{max-width:620px;margin:0 auto;width:100%}
   @media (prefers-reduced-motion:reduce){.deck{scroll-behavior:auto}}
+
+  /* Copy marked [touch] or [desktop] in the markdown. A touch-primary device is one that
+     cannot hover and has a coarse pointer, which is the standard test for a finger. */
+  @media (hover:none) and (pointer:coarse){ .only-desktop{display:none} }
+  @media not all and (hover:none) and (pointer:coarse){ .only-touch{display:none} }
+
+  /* Touch: content taller than the viewport should scroll rather than fight a hard snap. */
+  @media (hover:none) and (pointer:coarse){
+    .deck{scroll-snap-type:y proximity}
+    .screen{height:auto}
+    .back{appearance:none;background:none;border:0;padding:0 6px 0 0;margin:0;font:inherit;
+          color:var(--secondary);cursor:default}
+    .block{padding:14px 13px}          /* roomier tap targets */
+    /* the plan is the tallest screen, so its rows tighten up to stay in one view */
+    :root{--row:52px}
+    .amt{padding:12px}
+    .amt input,.amt .cur{font-size:23px}
+    .lim{margin:12px 0 14px}
+    /* every widget is live here, so it should never render dimmed even for one frame */
+    .widget .wbody{opacity:1}
+    .prompt{color:var(--tertiary)}
+    .prompt kbd{color:var(--primary);border-color:var(--tertiary)}
+  }
 
   .no{font-size:11px;font-weight:590;color:var(--quaternary);letter-spacing:.09em;
       text-transform:uppercase;margin-bottom:24px}
@@ -172,6 +196,8 @@
 (function(){
   "use strict";
   var C = window.COLA, L = C.locale, CUR = C.currency;
+  // A finger cannot press Return, so on touch every widget is live and taps do the work.
+  var TOUCH = window.matchMedia("(hover:none) and (pointer:coarse)").matches;
   var S = {}; C.screens.forEach(function(s){ S[s.id] = s; });
 
   function t(str, vars){
@@ -220,8 +246,13 @@
     host.innerHTML = html;
 
     document.getElementById("crumb").innerHTML = path.length
-      ? 'Portfolio <i>›</i> ' + path.map(function(n){return n.name;}).join(' <i>›</i> ')
-      : (active === "tree" ? 'Portfolio' : '<i>Portfolio</i>');
+      ? (TOUCH ? '<button class="back" aria-label="Back">&lsaquo;</button>' : '')
+        + 'Portfolio <i>›</i> ' + path.map(function(n){return n.name;}).join(' <i>›</i> ')
+      : (active === "tree" || TOUCH ? 'Portfolio' : '<i>Portfolio</i>');
+    if(TOUCH && path.length){
+      var b = document.getElementById("crumb").querySelector(".back");
+      if(b) b.addEventListener("click", function(e){ e.stopPropagation(); up(); });
+    }
     document.getElementById("tsum").textContent = sumW
       ? t(TL.label_targets, {sum: Math.round(sumW)}) : (TL.label_no_targets || "");
     document.getElementById("tval").textContent = money(sumV);
@@ -230,15 +261,24 @@
     if(note){
       // While dormant the grid holds no selection, so a line about the selected group
       // would describe something the reader cannot see.
-      note.textContent = active !== "tree"
-        ? (TL.note_dormant || "")
+      var pick = function(k){ return (TOUCH && TL[k + "_touch"]) || TL[k] || ""; };
+      note.textContent = (!TOUCH && active !== "tree")
+        ? pick("note_dormant")
         : cur && cur.children
-          ? t(cur.shared ? TL.note_shared : TL.note_group, {name: cur.name})
-          : (TL.note_leaf || "");
+          ? t(pick(cur.shared ? "note_shared" : "note_group"), {name: cur.name})
+          : pick("note_leaf");
     }
 
     Array.prototype.forEach.call(host.querySelectorAll(".block"), function(el){
-      el.addEventListener("click", function(){ sel = +el.dataset.i; active = "tree"; everOn.tree = true; paint(); });
+      el.addEventListener("click", function(){
+        var i = +el.dataset.i;
+        if(TOUCH){
+          sel = i;
+          if(level()[i] && level()[i].children) drill(); else renderTree();
+          return;
+        }
+        sel = i; active = "tree"; everOn.tree = true; paint();
+      });
       el.addEventListener("dblclick", drill);
     });
   }
@@ -363,13 +403,18 @@
 
   var idOf = function(i){ return screens[i].dataset.screen; };
   // A live screen holds its keys from the start: nothing to activate, nothing to release.
-  var isLive = function(id){ return !!(S[id] && S[id].live); };
+  var isLive = function(id){
+    var sc = S[id]; if(!sc) return false;
+    return TOUCH ? !!sc.widget : !!sc.live;
+  };
   var widgetOf = function(i){ return screens[i].querySelector(".widget"); };
   var cols = function(){ return window.matchMedia("(max-width:560px)").matches ? 1 : 2; };
 
   function paint(){
     var id = idOf(at), sc = S[id] || {}, on = active === id || isLive(id),
-        hs = (active === id && sc.hints_active && sc.hints_active.length) ? sc.hints_active : (sc.hints || []);
+        hs = TOUCH ? (sc.hints_touch && sc.hints_touch.length ? sc.hints_touch : (sc.hints || []))
+           : (active === id && sc.hints_active && sc.hints_active.length) ? sc.hints_active
+           : (sc.hints || []);
 
     document.getElementById("hints").innerHTML = hs.map(function(h,i){
       return '<span class="hint'+(i>2?' opt':'')+'" data-k="'+h.key+'"><u>'+h.key+'</u> '+h.label+'</span>';
@@ -382,13 +427,18 @@
           pr = w.querySelector(".prompt"),
           lb = pr && pr.querySelector("span"), kb = pr && pr.querySelector("kbd");
       w.classList.toggle("on", isOn);
-      if(lb) lb.textContent = live ? (meta.prompt || "")
-                                   : (isOn ? (meta.prompt_active || "") : (meta.prompt || ""));
-      if(kb) kb.textContent = live ? (meta.prompt_kbd || "← →") : (isOn ? "Escape" : "Return");
+      if(TOUCH){
+        if(lb) lb.textContent = meta.prompt_touch || meta.prompt || "";
+        if(kb) kb.textContent = meta.prompt_kbd_touch || "Tap";
+      } else {
+        if(lb) lb.textContent = live ? (meta.prompt || "")
+                                     : (isOn ? (meta.prompt_active || "") : (meta.prompt || ""));
+        if(kb) kb.textContent = live ? (meta.prompt_kbd || "← →") : (isOn ? "Escape" : "Return");
+      }
 
       // one gentle nudge the first time an untouched widget screen is reached
       if(pr){
-        var want = !live && i === at && !isOn && !everOn[sid];
+        var want = !TOUCH && !live && i === at && !isOn && !everOn[sid];
         pr.classList.toggle("pulse", want);
       }
     });
