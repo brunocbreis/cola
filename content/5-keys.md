@@ -14,7 +14,7 @@ hints_touch: swipe = screens
 | ⌘P | Plan your next purchase |
 | ⇧⌘H | Hide values, keep percentages |
 
-> [touch] These are the app's own shortcuts, on your Mac.
+> [touch] Keyboard first, like a Mac app should be.
 
 > Prices are fetched from Yahoo and exchange rates from Frankfurter, so everything is always up to date. 
 > Your data stays on your Mac and can be exported at any time.

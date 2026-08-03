@@ -21,6 +21,6 @@ note_leaf: Escape comes back out.
 note_dormant: {groups} groups, {holdings} holdings. Press arrows to navigate.
 note_dormant_touch: {groups} groups, {holdings} holdings. Tap one to look inside.
 ---
-[desktop] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide: regions, industries, asset classes. Below is one portfolio grouped three ways — pick a tab, and the plan on the next screen follows it.
+[desktop] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide: regions, industries, asset classes. Check out three different portfolios below and how they use groups to encode their strategies.
 
-[touch] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide. Here is one portfolio grouped three ways.
+[touch] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide. Here are three portfolios, each with its own strategy.

@@ -9,8 +9,8 @@ are interchangeable alternatives sharing one target.
 
 ## By region
 
-> One target per part of the world, so a rally in one place does not quietly become your
-> whole portfolio.
+> One target per part of the world, to keep a neutral exposure or bet
+> in specific geographies.
 
 | Holding | Weight | Ticker | Price | Value | Shared |
 |---|---|---|---|---|---|

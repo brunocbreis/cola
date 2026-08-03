@@ -2,6 +2,15 @@
 
 Newest first. One entry per published change to the site.
 
+## Copy pass, and the plan screen loses its prompt — 3 August 2026
+
+- The plan screen no longer prints a line telling the reader it is live. The amount field,
+  the slider and the orders under them say it by working.
+- A widget prints a prompt row only when its screen writes one, rather than an empty chip
+  standing in for the absent text.
+- Reworded the tree screen's opening, the region caption, and the touch note on the
+  shortcuts screen.
+
 ## Three ways to group — 3 August 2026
 
 The tree screen argued that groups are useful with a single example, which only made the

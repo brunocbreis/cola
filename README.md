@@ -69,6 +69,9 @@ prompt_active: arrows move · Return opens a group · Escape when done
 once the screen has the keys, and the `Return` chip beside it becomes `Escape`. The
 status bar swaps `hints` for `hints_active` at the same moment.
 
+Writing no `prompt` at all leaves the row out, which is what the plan screen does: it is
+live on arrival and its own controls are the invitation.
+
 ## The two live screens
 
 `2-tree.md` and `3-plan.md` carry `widget: tree` and `widget: plan`, which is

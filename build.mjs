@@ -115,7 +115,7 @@ const PROMPT = `
 
 const WIDGET = {
   tree: `
-      <div class="widget">${PROMPT}
+      <div class="widget">{{PROMPT}}
         <div class="wbody">
         <div class="tabs" id="tabs" role="tablist" aria-label="{{label_strategies}}"></div>
         <p class="scap" id="scap"></p>
@@ -126,7 +126,7 @@ const WIDGET = {
         <p class="note" id="tnote"></p>
       </div>`,
   plan: `
-      <div class="widget on">${PROMPT}
+      <div class="widget on">{{PROMPT}}
         <div class="wbody">
         <div class="amt" id="amtbox">
           <label for="amount">{{label_invest}}</label>
@@ -218,7 +218,11 @@ function build() {
     inner += blocks(body);
 
     if (meta.widget) {
+      // No prompt written for a screen means no prompt row: an empty chip would sit there
+      // announcing nothing.
+      const hasPrompt = !!(meta.prompt || meta.prompt_touch);
       inner += WIDGET[meta.widget]
+        .replace(/\{\{PROMPT\}\}/g, hasPrompt ? PROMPT : "")
         .replace(/\{\{label_invest\}\}/g, esc(meta.label_invest || ""))
         .replace(/\{\{label_strategies\}\}/g, esc(meta.label_strategies || "Strategies"))
         .replace(/\{\{amount\}\}/g, esc(site.default_amount || "1000"))
