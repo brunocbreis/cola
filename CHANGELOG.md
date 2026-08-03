@@ -2,6 +2,13 @@
 
 Newest first. One entry per published change to the site.
 
+## Command-arrows switch portfolios — 3 August 2026
+
+- `⌘← ⌘→` pick a portfolio while the grid is awake, where the plain arrows are busy
+  moving the selection. All three can now be compared without leaving the grid.
+- Listed in the status bar as `⌘← ⌘→ = portfolio`, last of the four, since a narrow
+  window drops hints past the third and `Escape` earns its place first.
+
 ## Nothing moves, and a wide window gets used — 3 August 2026
 
 Two faults, both visible while browsing rather than on arrival.

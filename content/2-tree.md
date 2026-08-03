@@ -6,7 +6,7 @@ heading: Holdings live in groups. Or not.
 label_strategies: Ways to group a portfolio
 hints: ↓ ↑ = screens | ← → = strategy | Return = try Cola
 hints_touch: tap a tab = strategy | tap a group = open it | ‹ = back
-hints_active: ← → ↑ ↓ = move | Return = open group | Escape = done
+hints_active: ← → ↑ ↓ = move | Return = open group | Escape = done | ⌘← ⌘→ = portfolio
 prompt: press Return to experiment with a Cola grid
 prompt_touch: tap a group to look inside it
 prompt_kbd_touch: Tap
