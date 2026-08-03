@@ -80,6 +80,37 @@ holds the labels those widgets print:
 
 Removing a `widget:` line leaves the prose and drops the interactive part.
 
+## Phones and tablets
+
+A device with a coarse pointer and no hover takes a separate path. Both widgets are
+awake from the start, since there is no Return to press: groups open on tap, a `‹`
+button in the breadcrumb goes back up, the amount field opens the numeric keypad, and
+the slider is dragged. The deck itself scrolls and snaps under the thumb.
+
+Four frontmatter keys hold the wording for it, each falling back to its plain
+counterpart when absent:
+
+```markdown
+hints_touch: tap a group = open it | ‹ = back
+prompt_touch: tap a group to look inside it
+prompt_kbd_touch: Tap
+note_group_touch: Tap any group to look inside it.
+```
+
+Any `note_*` key takes a `_touch` twin the same way.
+
+A block of copy can also belong to one kind of device, by opening with `[touch]` or
+`[desktop]`:
+
+```markdown
+> [desktop] Six screens. Use the arrow keys to move through them.
+
+> [touch] Six screens. Swipe up to move through them.
+```
+
+Both are written into the page and one is hidden by media query, so a phone that
+reports a mouse still reads sentences that match its input.
+
 ## The example portfolio
 
 `portfolio.md` is one table. Depth is the number of leading dashes:
