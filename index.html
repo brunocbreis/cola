@@ -33,24 +33,6 @@
   @media (hover:none) and (pointer:coarse){ .only-desktop{display:none} }
   @media not all and (hover:none) and (pointer:coarse){ .only-touch{display:none} }
 
-  /* Touch: content taller than the viewport should scroll rather than fight a hard snap. */
-  @media (hover:none) and (pointer:coarse){
-    .deck{scroll-snap-type:y proximity}
-    .screen{height:auto}
-    .back{appearance:none;background:none;border:0;padding:0 6px 0 0;margin:0;font:inherit;
-          color:var(--secondary);cursor:default}
-    .block{padding:14px 13px}          /* roomier tap targets */
-    /* the plan is the tallest screen, so its rows tighten up to stay in one view */
-    :root{--row:52px}
-    .amt{padding:12px}
-    .amt input,.amt .cur{font-size:23px}
-    .lim{margin:12px 0 14px}
-    /* every widget is live here, so it should never render dimmed even for one frame */
-    .widget .wbody{opacity:1}
-    .prompt{color:var(--tertiary)}
-    .prompt kbd{color:var(--primary);border-color:var(--tertiary)}
-  }
-
   .no{font-size:11px;font-weight:590;color:var(--quaternary);letter-spacing:.09em;
       text-transform:uppercase;margin-bottom:24px}
   h1{font-size:30px;line-height:1.22;letter-spacing:-.025em;font-weight:590;max-width:19em;
@@ -181,6 +163,50 @@
     .card .a,.skip .a{width:72px}
     .hints .opt{display:none}
   }
+
+  /* ══ touch layer ══ last in the sheet, so the width breakpoints above cannot undo it ══ */
+
+  /* Touch: one screen per swipe, same as one arrow press per screen. A screen taller than
+     the viewport stays scrollable inside itself, since an oversized snap area accepts every
+     position that covers the viewport. */
+  @media (hover:none) and (pointer:coarse){
+    .deck{overscroll-behavior-y:contain}
+    /* one swipe moves one screen, however hard it is flicked */
+    /* A screen taller than the phone reads from its top edge and scrolls within itself;
+       centring it would leave both ends out of reach. */
+    .screen{padding:36px 20px calc(var(--bar) + 24px);scroll-snap-align:start;scroll-snap-stop:always}
+    .back{appearance:none;background:none;border:0;padding:0 6px 0 0;margin:0;font:inherit;
+          color:var(--secondary);cursor:default}
+    .block{padding:14px 13px}          /* roomier tap targets */
+    /* the plan is the tallest screen, so its rows tighten up to stay in one view */
+    :root{--row:52px}
+    .amt{padding:12px}
+    .amt input,.amt .cur{font-size:23px}
+    .lim{margin:12px 0 14px}
+    /* every widget is live here, so it should never render dimmed even for one frame */
+    .widget .wbody{opacity:1}
+    .prompt{color:var(--tertiary)}
+    .prompt kbd{color:var(--primary);border-color:var(--tertiary)}
+  }
+
+  /* A phone with its address bar showing has some 660px to work with, and the two widget
+     screens are the tall ones. Everything gives a little so a screen stays a screen. */
+  @media (hover:none) and (pointer:coarse) and (max-height:760px){
+    :root{--row:46px}
+    .screen{padding:28px 20px calc(var(--bar) + 18px)}
+    h1{font-size:26px}
+    h2{font-size:20px}
+    p.note{margin-top:14px;font-size:12px}
+    .mark{margin-bottom:30px}
+    .no{margin-bottom:16px}
+    .widget{margin-top:18px}
+    .amt input,.amt .cur{font-size:21px}
+    .amt{padding:10px}
+    .lim{margin:10px 0 12px}
+    .icon{width:54px;height:54px}
+    .keys{margin-top:18px;gap:8px 14px}
+  }
+
 </style>
 </head>
 <body>
@@ -492,6 +518,7 @@
         gap = parseFloat(css.getPropertyValue("--gap")),
         worst = Math.max(1, Math.min(C.max_orders, units.length) + skipped.length);
     host.style.height = (worst * (row + gap)) + "px";
+    geom = null;   // screens below this one have just moved
 
     document.getElementById("totleft").textContent =
       t(PL.label_total, {total: money(total), projected: money(projected)});
@@ -672,15 +699,28 @@
     });
   }
 
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(e.isIntersecting){
-        var i = screens.indexOf(e.target);
-        if(i > -1 && i !== at){ if(active) release(); at = i; paint(); }
-      }
-    });
-  }, {root:deck, threshold:.55});
-  screens.forEach(function(s){ io.observe(s); });
+  // The screen crossing the middle of the viewport is the active one, read straight from the
+  // scroll position. A screen taller than the viewport — which is the ordinary case for the
+  // two widget screens on a phone — is active for as long as it covers that middle.
+  // Measured once and kept, so the handler below is arithmetic on every scroll event rather
+  // than a fresh layout read.
+  var geom = null;
+  function measure(){
+    var t0 = screens[0].offsetTop;
+    geom = screens.map(function(s){ return {top:s.offsetTop - t0, h:s.offsetHeight}; });
+  }
+  window.addEventListener("resize", function(){ geom = null; });
+
+  function activeFromScroll(){
+    if(!geom) measure();
+    var mid = deck.scrollTop + deck.clientHeight / 2, best = 0, near = Infinity;
+    for(var i = 0; i < geom.length; i++){
+      var g = geom[i], d = (mid >= g.top && mid <= g.top + g.h) ? 0 : Math.abs(g.top + g.h/2 - mid);
+      if(d < near){ near = d; best = i; }
+    }
+    if(best !== at){ if(active) release(); at = best; paint(); }
+  }
+  deck.addEventListener("scroll", activeFromScroll, {passive:true});
 
   // pointing at a widget hands it the keys too
   screens.forEach(function(s,i){

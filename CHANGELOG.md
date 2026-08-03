@@ -2,6 +2,21 @@
 
 Newest first. One entry per published change to the site.
 
+## One screen per swipe — 3 August 2026
+
+Touch scrolling had gone continuous, losing the sense of one screen at a time.
+
+- Restored `mandatory` snapping on touch, which an earlier `proximity` setting had
+  loosened to make room for content that has since been tightened to fit.
+- `scroll-snap-stop: always` holds each screen for a swipe, however hard it is flicked.
+- Screens taller than the phone align to their top edge instead of their centre, so both
+  ends stay reachable.
+- The touch rules moved to the end of the stylesheet, where the width breakpoints above
+  can no longer undo them — which is why the earlier tightening had no effect.
+- Row heights, type sizes and paddings tighten again below 760px of viewport height.
+- The active screen is read from the scroll position rather than an intersection
+  threshold, which a screen taller than the viewport could never meet.
+
 ## The reader's own currency — 3 August 2026
 
 Every figure on the page is now read in the visitor's own money and notation, the way

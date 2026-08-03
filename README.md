@@ -85,7 +85,10 @@ Removing a `widget:` line leaves the prose and drops the interactive part.
 A device with a coarse pointer and no hover takes a separate path. Both widgets are
 awake from the start, since there is no Return to press: groups open on tap, a `‹`
 button in the breadcrumb goes back up, the amount field opens the numeric keypad, and
-the slider is dragged. The deck itself scrolls and snaps under the thumb.
+the slider is dragged. The deck itself snaps one screen per swipe, however hard it is flicked.
+
+A screen taller than the phone — which the two widget screens are, on most — aligns to its
+top edge and scrolls within itself, then hands the next swipe on to the screen below.
 
 Four frontmatter keys hold the wording for it, each falling back to its plain
 counterpart when absent:
