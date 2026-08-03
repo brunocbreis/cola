@@ -6,7 +6,7 @@ Copy lives in `content/`. Edit the markdown, then the page is rebuilt from it.
 ```
 site/
   content/          ← edit these
-    site.md           page title, meta description, currency, slider defaults
+    site.md           page title, meta description, currency, locale, slider defaults
     1-title.md        opening screen
     2-tree.md         the tree screen
     3-plan.md         the plan screen
@@ -125,10 +125,40 @@ A row with children needs no ticker, price, or value — those sum from below.
 `yes` in the Shared column marks a group whose holdings are interchangeable
 alternatives sharing one target, which is what makes the plan offer them as
 `12.4 × EIMI or 7.0 × VFEM`. Weights need not total 100; the page normalizes
-them exactly as the app does. Values are in the currency set in `site.md`.
+them exactly as the app does. Values are plain numbers, read in the visitor's own
+currency — see below.
 
 Change any of it and the plan screen recalculates from the new numbers, since the
 ranking and the split are computed in the page rather than written down.
+
+## The reader's own currency
+
+Cola takes its base currency from the system it runs on, and the page does the same. A
+reader in Paris gets `10 000 €`, one in São Paulo `R$ 10.000`, one in New York
+`$10,000` — along with that locale's grouping marks, decimal comma or point, and percent
+spacing.
+
+The locale comes from `navigator.languages`. The currency comes from the locale's region
+through a table in the template; a language with no region is resolved by CLDR first, so
+a bare `pt` lands on Brazil and `fr` on France. `Intl.NumberFormat` then decides
+everything else, including which side of the digits the symbol belongs on and whether a
+space goes between. The amount field follows: it hugs its digits so the symbol sits
+beside them, shows grouped figures at rest, and switches to bare digits while typed into,
+since separators fight the caret.
+
+Three keys in `site.md` govern it:
+
+```markdown
+currency: $          symbol written into the page before scripts run
+currency_code: USD   ISO code used when the visitor's region is unknown
+locale: en-US        notation used in the same case
+follow_visitor: yes  set to no to show that one currency to everyone
+```
+
+The figures are relabelled rather than converted — the same `505.10` reads as
+`$505.10` or `R$ 505,10`. They are an example either way, and an example lands best in
+the units the reader already thinks in. Pin `follow_visitor: no` for a single currency
+everywhere.
 
 ## Publishing
 

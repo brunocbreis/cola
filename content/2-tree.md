@@ -10,7 +10,7 @@ prompt: press Return to experiment with a Cola grid
 prompt_touch: tap a group to look inside it
 prompt_kbd_touch: Tap
 prompt_active: arrows move · Return opens a group · Escape when done
-label_targets: Targets {sum}%
+label_targets: Targets {sum}
 label_no_targets: No targets at this level
 note_shared: {name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies. Return to look inside.
 note_shared_touch: {name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies.

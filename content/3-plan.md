@@ -14,7 +14,7 @@ label_invest: To invest
 label_order: order
 label_orders: orders
 label_skip: past its target
-label_of_target: {pct}% of target
+label_of_target: {pct} of target
 label_total: {total} today, {projected} once this lands
 label_placed: {sum} placed
 label_or: or

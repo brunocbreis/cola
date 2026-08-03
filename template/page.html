@@ -110,10 +110,12 @@
   .amt{border:1px solid var(--separator);border-radius:var(--r);padding:14px;margin-bottom:8px;
        display:flex;align-items:baseline;gap:10px}
   .amt label{font-size:12px;color:var(--quaternary);text-transform:uppercase;letter-spacing:.09em;flex:1}
+  .amt .val{display:flex;align-items:baseline;gap:.28em}
+  .amt .val.tight{gap:0}
   .amt input{background:none;border:0;color:var(--primary);font-family:var(--sans);
-             font-size:26px;font-weight:590;letter-spacing:-.02em;text-align:right;width:150px;
+             font-size:26px;font-weight:590;letter-spacing:-.02em;text-align:right;width:5ch;
              font-variant-numeric:tabular-nums;outline:none;padding:0}
-  .amt .cur{font-size:26px;font-weight:590;color:var(--tertiary)}
+  .amt .cur{font-size:26px;font-weight:590;color:var(--tertiary);white-space:nowrap}
   .amt.focus{border-color:var(--secondary);background:var(--well)}
 
   .lim{display:flex;align-items:center;gap:12px;margin:14px 0 18px;font-size:13px;color:var(--tertiary)}
@@ -195,7 +197,79 @@
 <script>
 (function(){
   "use strict";
-  var C = window.COLA, L = C.locale, CUR = C.currency;
+  var C = window.COLA;
+
+  /* ---------- the reader's own money and notation ----------
+     Cola takes its base currency from the system it runs on, so the page does the same:
+     the figures below are read in the currency and notation the reader keeps at home.
+     Amounts are an example either way, and an example is easiest to judge in the units
+     you already think in. */
+  var REGION_CURRENCY = {
+    AD:"EUR",AT:"EUR",BE:"EUR",CY:"EUR",DE:"EUR",EE:"EUR",ES:"EUR",FI:"EUR",FR:"EUR",
+    GR:"EUR",HR:"EUR",IE:"EUR",IT:"EUR",LT:"EUR",LU:"EUR",LV:"EUR",MC:"EUR",ME:"EUR",
+    MT:"EUR",NL:"EUR",PT:"EUR",SI:"EUR",SK:"EUR",SM:"EUR",VA:"EUR",XK:"EUR",
+    US:"USD",EC:"USD",SV:"USD",PA:"USD",PR:"USD",GU:"USD",TL:"USD",ZW:"USD",
+    BR:"BRL",GB:"GBP",CH:"CHF",LI:"CHF",JP:"JPY",CN:"CNY",IN:"INR",CA:"CAD",
+    AU:"AUD",NZ:"NZD",MX:"MXN",AR:"ARS",CL:"CLP",CO:"COP",PE:"PEN",UY:"UYU",
+    PY:"PYG",BO:"BOB",VE:"VES",CR:"CRC",GT:"GTQ",DO:"DOP",HN:"HNL",NI:"NIO",
+    ZA:"ZAR",NG:"NGN",KE:"KES",GH:"GHS",TZ:"TZS",UG:"UGX",ET:"ETB",EG:"EGP",
+    MA:"MAD",DZ:"DZD",TN:"TND",TR:"TRY",RU:"RUB",UA:"UAH",BY:"BYN",KZ:"KZT",
+    PL:"PLN",CZ:"CZK",HU:"HUF",RO:"RON",BG:"BGN",RS:"RSD",MK:"MKD",AL:"ALL",
+    SE:"SEK",NO:"NOK",DK:"DKK",IS:"ISK",IL:"ILS",
+    AE:"AED",SA:"SAR",QA:"QAR",KW:"KWD",BH:"BHD",OM:"OMR",JO:"JOD",LB:"LBP",IQ:"IQD",
+    KR:"KRW",TW:"TWD",HK:"HKD",MO:"MOP",SG:"SGD",MY:"MYR",TH:"THB",ID:"IDR",
+    PH:"PHP",VN:"VND",PK:"PKR",BD:"BDT",LK:"LKR",NP:"NPR",MM:"MMK",KH:"KHR",MN:"MNT"
+  };
+
+  function regionOf(tag){
+    try{
+      var loc = new Intl.Locale(tag);
+      // A bare "pt" carries no region, and CLDR knows the likely one: pt→BR, fr→FR, en→US.
+      return loc.region || loc.maximize().region || "";
+    }catch(e){
+      var m = String(tag).match(/[-_]([A-Za-z]{2})(?:[-_]|$)/);
+      return m ? m[1].toUpperCase() : "";
+    }
+  }
+
+  var L = C.locale, CODE = C.currency_code;
+  if(C.follow_visitor){
+    var tag = (navigator.languages && navigator.languages[0]) || navigator.language;
+    if(tag){
+      L = tag;
+      CODE = REGION_CURRENCY[regionOf(tag)] || C.currency_code;
+    }
+  }
+
+  // Intl turns down a currency or a locale it does not know, so each step has a way back.
+  function nf(opts){
+    try{ return new Intl.NumberFormat(L, opts); }
+    catch(e){
+      try{ return new Intl.NumberFormat(C.locale, opts); }
+      catch(e2){ return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: opts.minimumFractionDigits,
+        maximumFractionDigits: opts.maximumFractionDigits}); }
+    }
+  }
+  var f_money  = nf({style:"currency", currency:CODE, minimumFractionDigits:0, maximumFractionDigits:0}),
+      f_price  = nf({style:"currency", currency:CODE, minimumFractionDigits:2, maximumFractionDigits:2}),
+      f_shares = nf({minimumFractionDigits:1, maximumFractionDigits:1}),
+      f_int    = nf({maximumFractionDigits:0}),
+      f_pct1   = nf({style:"percent", minimumFractionDigits:1, maximumFractionDigits:1}),
+      f_pct0   = nf({style:"percent", maximumFractionDigits:0});
+
+  // The symbol, which side of the digits it belongs on, and whether a space goes between —
+  // all three are the formatter's call: $1,000 against 1 000 € against R$ 1.000.
+  var SYMBOL = CODE, SYM_FIRST = false, SYM_TIGHT = true;
+  try{
+    var parts = f_money.formatToParts(1234), ci = -1;
+    parts.forEach(function(p, i){ if(p.type === "currency"){ SYMBOL = p.value; ci = i; } });
+    if(ci >= 0){
+      SYM_FIRST = !parts.slice(0, ci).some(function(p){ return p.type === "integer"; });
+      var next = parts[SYM_FIRST ? ci + 1 : ci - 1];
+      SYM_TIGHT = !(next && next.type === "literal" && /\s|\u00a0|\u202f/.test(next.value));
+    }
+  }catch(e){}
   // A finger cannot press Return, so on touch every widget is live and taps do the work.
   var TOUCH = window.matchMedia("(hover:none) and (pointer:coarse)").matches;
   var S = {}; C.screens.forEach(function(s){ S[s.id] = s; });
@@ -205,11 +279,11 @@
       return vars[k] != null ? vars[k] : "";
     });
   }
-  function money(n){
-    return n.toLocaleString(L, {minimumFractionDigits:0, maximumFractionDigits:0}) + " " + CUR;
-  }
-  function price(n){ return n.toLocaleString(L, {minimumFractionDigits:2, maximumFractionDigits:2}) + " " + CUR; }
-  function shares(n){ return n.toLocaleString("en-US", {minimumFractionDigits:1, maximumFractionDigits:1}); }
+  function money(n){  return f_money.format(n); }
+  function price(n){  return f_price.format(n); }
+  function shares(n){ return f_shares.format(n); }
+  function pct1(n){   return f_pct1.format(n / 100); }   // takes 62.5, prints 62.5%
+  function pct0(n){   return f_pct0.format(n / 100); }
 
   var tree = C.portfolio;
   function val(n){ return n.children ? n.children.reduce(function(s,c){return s+val(c);},0) : n.value; }
@@ -236,8 +310,8 @@
       html += '<div class="block'+(i===sel && active==="tree" ? ' sel':'')+'" data-i="'+i+'">'
            +   '<div class="r1"><div class="nm"><b>'+n.name+'</b>'
            +     (n.shared?'<span class="tag">SHARED</span>':'')+'</div>'
-           +     '<div class="pct tnum">'+(n.weight==null ? curPct.toFixed(1)+'%'
-                  : curPct.toFixed(1)+' <i>/ '+Math.round(n.weight)+'%</i>')+'</div></div>'
+           +     '<div class="pct tnum">'+(n.weight==null ? pct1(curPct)
+                  : pct1(curPct)+' <i>/ '+pct0(Math.round(n.weight))+'</i>')+'</div></div>'
            +   (n.weight==null?'':'<div class="fill"><i class="'+(over?'over':'')
                   +'" style="width:'+(over?100:fill)+'%"></i></div>')
            +   '<div class="r3"><span class="pv">'+preview+'</span>'
@@ -254,7 +328,7 @@
       if(b) b.addEventListener("click", function(e){ e.stopPropagation(); up(); });
     }
     document.getElementById("tsum").textContent = sumW
-      ? t(TL.label_targets, {sum: Math.round(sumW)}) : (TL.label_no_targets || "");
+      ? t(TL.label_targets, {sum: pct0(Math.round(sumW))}) : (TL.label_no_targets || "");
     document.getElementById("tval").textContent = money(sumV);
 
     var cur = nodes[sel], note = document.getElementById("tnote");
@@ -318,7 +392,7 @@
         : shares(u.alloc/n.price) + " × " + n.sym + " · " + price(n.price);
       html += '<div class="card"><span class="a tnum">'+money(u.alloc)+'</span>'
            +  '<span class="w"><b>'+n.name+'</b><span>'+buy+'</span></span>'
-           +  '<span class="g tnum">'+t(PL.label_of_target,{pct:(u.value/u.target*100).toFixed(0)})+'</span></div>';
+           +  '<span class="g tnum">'+t(PL.label_of_target,{pct:pct0(u.value/u.target*100)})+'</span></div>';
     });
     skipped.forEach(function(n){
       html += '<div class="skip"><span class="a">—</span><b>'+n.name+'</b><span>'+(PL.label_skip||"")+'</span></div>';
@@ -352,14 +426,46 @@
       limit + " " + (limit===1 ? (PL.label_order||"order") : (PL.label_orders||"orders"));
   }
 
-  var amount = document.getElementById("amount"), amtbox = document.getElementById("amtbox");
+  var amount = document.getElementById("amount"), amtbox = document.getElementById("amtbox"),
+      amtval = document.getElementById("amtval");
   if(amount){
+    // The symbol takes the side and the spacing the locale gives it.
+    var cursym = amtval && amtval.querySelector(".cur");
+    if(cursym){
+      cursym.textContent = SYMBOL;
+      if(SYM_FIRST) amtval.insertBefore(cursym, amount);
+      if(SYM_TIGHT) amtval.classList.add("tight");
+    }
+
+    // The field hugs its contents so the symbol stays beside the number rather than
+    // across a fixed gap from it. Counting characters would overshoot, since a grouping
+    // mark is narrower than a digit, so an offscreen twin of the text is measured instead.
+    var mirror = document.createElement("span");
+    mirror.setAttribute("aria-hidden", "true");
+    mirror.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre";
+    amtval.appendChild(mirror);
+    function fit(){
+      var cs = getComputedStyle(amount);
+      ["fontFamily","fontSize","fontWeight","fontStyle","letterSpacing","fontVariantNumeric"]
+        .forEach(function(k){ mirror.style[k] = cs[k]; });
+      mirror.textContent = amount.value || "0";
+      amount.style.width = Math.max(mirror.getBoundingClientRect().width, 8) + "px";
+    }
+    window.addEventListener("resize", fit);   // the type shrinks on a narrow screen
+
+    // Grouped while at rest, bare digits while being typed into — separators would fight
+    // the caret on every keystroke.
+    function rest(){ amount.value = f_int.format(budget); fit(); }
+    function edit(){ amount.value = String(budget);       fit(); }
+
     amount.addEventListener("input", function(){
       var n = parseInt(amount.value.replace(/\D/g,""),10);
-      budget = isNaN(n) ? 0 : Math.min(n, 9999999); plan();
+      budget = isNaN(n) ? 0 : Math.min(n, 9999999);
+      fit(); plan();
     });
-    amount.addEventListener("focus", function(){ amtbox.classList.add("focus"); });
-    amount.addEventListener("blur",  function(){ amtbox.classList.remove("focus"); });
+    amount.addEventListener("focus", function(){ amtbox.classList.add("focus"); edit(); });
+    amount.addEventListener("blur",  function(){ amtbox.classList.remove("focus"); rest(); });
+    rest();
   }
 
   /* ---------- the orders slider ---------- */

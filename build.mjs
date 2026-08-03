@@ -111,8 +111,10 @@ const WIDGET = {
         <div class="wbody">
         <div class="amt" id="amtbox">
           <label for="amount">{{label_invest}}</label>
-          <input id="amount" type="text" inputmode="numeric" value="{{amount}}" aria-label="{{label_invest}}">
-          <span class="cur">{{currency}}</span>
+          <span class="val" id="amtval">
+            <input id="amount" type="text" inputmode="numeric" value="{{amount}}" aria-label="{{label_invest}}">
+            <span class="cur">{{currency}}</span>
+          </span>
         </div>
         <div class="lim">
           <b id="limlabel"></b>
@@ -218,6 +220,8 @@ function build() {
 
   const data = {
     currency: site.currency || "€",
+    currency_code: (site.currency_code || "EUR").toUpperCase(),
+    follow_visitor: !/^n/i.test(site.follow_visitor || "yes"),
     locale: site.locale || "de-DE",
     max_orders: Number(site.max_orders || 6),
     default_orders: Number(site.default_orders || 4),

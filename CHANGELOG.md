@@ -2,6 +2,21 @@
 
 Newest first. One entry per published change to the site.
 
+## The reader's own currency — 3 August 2026
+
+Every figure on the page is now read in the visitor's own money and notation, the way
+the app takes its base currency from the system it runs on.
+
+- Locale from `navigator.languages`; currency from that locale's region, with CLDR
+  resolving a language that carries no region.
+- `Intl.NumberFormat` handles symbol placement, grouping marks, decimal separator and
+  percent spacing, so Paris sees `10 000 €`, São Paulo `R$ 10.000`, New York `$10,000`.
+- The amount field measures its own text and hugs it, keeping the symbol beside the
+  number; grouped at rest, bare digits while typed into.
+- `follow_visitor: no` in `site.md` pins one currency for everyone.
+- Percent signs moved out of the copy and into the formatters, which place them per
+  locale — `100%` against `100 %`.
+
 ## Touch support — 3 August 2026
 
 The deck now reads the device and offers the matching gesture for every keyboard
