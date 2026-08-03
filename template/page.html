@@ -39,9 +39,9 @@
   h1 em{font-style:normal;color:var(--tertiary)}
   h2{font-size:22px;line-height:1.25;letter-spacing:-.02em;font-weight:590;margin-bottom:8px;
      text-wrap:balance}
-  p.say{color:var(--secondary);max-width:31em;text-wrap:pretty}
+  p.say{color:var(--secondary);max-width:34em;text-wrap:pretty}
   p.say + p.say{margin-top:14px}
-  p.note{color:var(--tertiary);font-size:13px;max-width:33em;margin-top:20px;text-wrap:pretty}
+  p.note{color:var(--tertiary);font-size:13px;max-width:38em;margin-top:20px;text-wrap:pretty}
 
   .mark{display:flex;align-items:center;gap:14px;margin-bottom:44px}
   .glyph{width:21px;height:21px;border:1px solid var(--primary);border-radius:6px;
@@ -68,8 +68,7 @@
   .tab:hover{color:var(--secondary)}
   .tab[aria-selected=true]{color:var(--primary);background:var(--well);border-color:var(--separator)}
   .tab:focus-visible{outline:none;border-color:var(--secondary)}
-  .scap{font-size:13px;color:var(--tertiary);margin-bottom:14px;text-wrap:pretty;max-width:44em;
-        min-height:3em}
+  .scap{font-size:13px;color:var(--tertiary);margin-bottom:14px;text-wrap:pretty;max-width:52em}
 
   .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .block{display:flex;flex-direction:column;gap:8px;border:1px solid var(--separator);
@@ -174,6 +173,22 @@
     .grid{grid-template-columns:minmax(0,1fr)}
     .card .a,.skip .a{width:72px}
     .hints .opt{display:none}
+  }
+
+
+  /* A wide window should be used. The measure of running prose stays put — that is a
+     reading limit, not a space one — while the grid and the plan take the room going. */
+  @media (min-width:1000px){
+    body{font-size:16px}
+    .in{max-width:820px}
+    h1{font-size:36px}
+    h2{font-size:26px}
+    .no{font-size:12px}
+    p.note{font-size:14px}
+  }
+  @media (min-width:1400px){
+    .in{max-width:960px}
+    h1{font-size:40px}
   }
 
   /* ══ touch layer ══ last in the sheet, so the width breakpoints above cannot undo it ══ */
@@ -340,12 +355,9 @@
   var path = [], sel = 0, TL = S.tree || {};
   function level(){ return path.length ? path[path.length-1].children : tree; }
 
-  function renderTree(){
-    var host = document.getElementById("tgrid"); if(!host) return;
-    var nodes = level(),
-        sumV = nodes.reduce(function(s,n){return s+val(n);},0),
+  function gridHTML(nodes, selected){
+    var sumV = nodes.reduce(function(s,n){return s+val(n);},0),
         sumW = nodes.reduce(function(s,n){return s+(n.weight||0);},0), html = "";
-
     nodes.forEach(function(n,i){
       var v = val(n),
           curPct = sumV ? v/sumV*100 : 0,
@@ -354,7 +366,7 @@
           fill = tgtPct ? Math.min(curPct/tgtPct,1)*100 : 0,
           preview = n.children ? n.children.map(function(c){return c.name;}).join(" · ")
                                : n.sym + " · " + price(n.price);
-      html += '<div class="block'+(i===sel && active==="tree" ? ' sel':'')+'" data-i="'+i+'">'
+      html += '<div class="block'+(i===selected ? ' sel':'')+'" data-i="'+i+'">'
            +   '<div class="r1"><div class="nm"><b>'+n.name+'</b>'
            +     (n.shared?'<span class="tag">SHARED</span>':'')+'</div>'
            +     '<div class="pct tnum">'+(n.weight==null ? pct1(curPct)
@@ -364,7 +376,15 @@
            +   '<div class="r3"><span class="pv">'+preview+'</span>'
            +     '<span class="vl tnum">'+money(v)+'</span></div></div>';
     });
-    host.innerHTML = html;
+    return html;
+  }
+
+  function renderTree(){
+    var host = document.getElementById("tgrid"); if(!host) return;
+    var nodes = level(),
+        sumV = nodes.reduce(function(s,n){return s+val(n);},0),
+        sumW = nodes.reduce(function(s,n){return s+(n.weight||0);},0);
+    host.innerHTML = gridHTML(nodes, active === "tree" ? sel : -1);
 
     document.getElementById("crumb").innerHTML = path.length
       ? (TOUCH ? '<button class="back" aria-label="Back">&lsaquo;</button>' : '')
@@ -412,6 +432,94 @@
   function up(){ if(path.length){ path.pop(); sel = 0; renderTree(); } }
 
   /* ---------- plan widget ---------- */
+  /* ---------- room kept for lines that change ----------
+     The note under the grid and the caption under the tabs both change length as the
+     reader moves around. The screen is centred, so a line more or less would shift
+     everything above it. Each is given the height of its own longest wording, measured
+     at the width it will occupy, and keeps that height whatever it currently says. */
+  function reserve(el, texts){
+    if(!el || !texts.length) return;
+    var probe = el.cloneNode(false);
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.left = "-9999px";
+    probe.style.top = "0";
+    probe.style.minHeight = "0";
+    probe.style.width = el.getBoundingClientRect().width + "px";
+    el.parentNode.appendChild(probe);
+    var tall = 0;
+    texts.forEach(function(txt){
+      probe.textContent = txt;
+      tall = Math.max(tall, probe.getBoundingClientRect().height);
+    });
+    probe.parentNode.removeChild(probe);
+    el.style.minHeight = Math.ceil(tall) + "px";
+  }
+
+  function noteCandidates(){
+    var pick = function(k){ return (TOUCH && TL[k + "_touch"]) || TL[k] || ""; },
+        names = [], out = [];
+    (function walk(ns){
+      ns.forEach(function(n){ if(n.children){ names.push(n.name); walk(n.children); } });
+    })(STRATS.reduce(function(a, st){ return a.concat(st.tree); }, []));
+
+    ["note_group", "note_shared"].forEach(function(k){
+      var tpl = pick(k); if(!tpl) return;
+      names.forEach(function(nm){ out.push(t(tpl, {name: nm})); });
+    });
+    if(pick("note_leaf")) out.push(pick("note_leaf"));
+    if(pick("note_dormant")){
+      STRATS.forEach(function(st){
+        var c = {g:0, h:0};
+        (function walk(ns){ ns.forEach(function(n){ n.children ? (c.g++, walk(n.children)) : c.h++; }); })(st.tree);
+        out.push(t(pick("note_dormant"), {groups: c.g, holdings: c.h}));
+      });
+    }
+    return out;
+  }
+
+  // Every level a reader can reach, across every strategy.
+  function allLevels(){
+    var out = [];
+    STRATS.forEach(function(st){
+      out.push(st.tree);
+      (function walk(ns){
+        ns.forEach(function(n){ if(n.children){ out.push(n.children); walk(n.children); } });
+      })(st.tree);
+    });
+    return out;
+  }
+
+  // Drilling into a group with fewer holdings would otherwise shorten the grid and, on a
+  // centred screen, pull everything above it downward. The grid keeps the height of the
+  // deepest level anyone can open, measured as it would actually render.
+  function reserveGrid(){
+    var host = document.getElementById("tgrid"); if(!host) return;
+    host.style.minHeight = "0";
+    var probe = host.cloneNode(false);
+    probe.removeAttribute("id");
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.left = "-9999px";
+    probe.style.top = "0";
+    probe.style.width = host.getBoundingClientRect().width + "px";
+    host.parentNode.appendChild(probe);
+    var tall = 0;
+    allLevels().forEach(function(nodes){
+      probe.innerHTML = gridHTML(nodes, -1);
+      tall = Math.max(tall, probe.getBoundingClientRect().height);
+    });
+    probe.parentNode.removeChild(probe);
+    host.style.minHeight = Math.ceil(tall) + "px";
+  }
+
+  function reserveAll(){
+    reserve(document.getElementById("tnote"), noteCandidates());
+    reserve(document.getElementById("scap"), STRATS.map(function(st){ return st.note || ""; }));
+    reserveGrid();
+    geom = null;
+  }
+
   /* ---------- strategies ---------- */
   function renderTabs(){
     var host = document.getElementById("tabs"); if(!host) return;
@@ -692,6 +800,9 @@
 
   // pointing at a widget hands it the keys too
   renderTabs();
+  reserveAll();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(reserveAll);
+  window.addEventListener("resize", function(){ reserveAll(); });
 
   screens.forEach(function(s,i){
     var w = widgetOf(i); if(!w) return;

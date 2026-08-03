@@ -83,6 +83,24 @@ holds the labels those widgets print:
 
 Removing a `widget:` line leaves the prose and drops the interactive part.
 
+## Nothing moves while you browse
+
+Screens are centred, so anything that changes height moves everything above it. Three
+things change height as a reader moves around, and each is given the room for its worst
+case rather than allowed to grow into it:
+
+- the note under the grid, which follows the selection,
+- the caption under the tabs, which follows the strategy,
+- the grid itself, whose levels hold different numbers of holdings.
+
+All three are measured in the page at the width they will occupy — every wording the note
+can take, every caption, every level of every strategy — and the tallest result is kept.
+Re-measured when the window resizes, so it holds at any size and in any language the
+formatter produces. The plan screen already worked this way for its orders list.
+
+The consequence for editing: a much longer `note_*` line in `2-tree.md` will raise the
+reserved height for all of them, since the tallest wins.
+
 ## Phones and tablets
 
 A device with a coarse pointer and no hover takes a separate path. Both widgets are

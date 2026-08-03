@@ -2,6 +2,21 @@
 
 Newest first. One entry per published change to the site.
 
+## Nothing moves, and a wide window gets used — 3 August 2026
+
+Two faults, both visible while browsing rather than on arrival.
+
+- The note under the grid and the caption under the tabs change length as the reader
+  moves around, and a centred screen turned every extra line into a shift of everything
+  above it. Each now keeps the height of its own longest wording, measured at the width
+  it occupies and re-measured when the window changes.
+- Drilling into a group with fewer holdings shortened the grid, which moved the screen
+  the same way. The grid keeps the height of the deepest level anyone can open.
+- Above 1000px the page widens to 820px and the type grows; above 1400px, 960px. Holding
+  a phone-width column on a large display left the grid clipping names it had room to
+  print, and the headings smaller than the screen could carry. Running prose keeps its
+  measure, which is a reading limit rather than a spare-room one.
+
 ## Copy pass, and the plan screen loses its prompt — 3 August 2026
 
 - The plan screen no longer prints a line telling the reader it is live. The amount field,
