@@ -59,6 +59,19 @@
 
   .crumb{font-size:13px;color:var(--tertiary);margin-bottom:12px;height:20px}
   .crumb i{font-style:normal;color:var(--quaternary)}
+  /* One tab per way of grouping. Selected reads at full brightness against a well; the
+     rest sit at tertiary, which is the same contrast-only hierarchy the app uses. */
+  .tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{appearance:none;font:inherit;font-size:12px;font-weight:590;letter-spacing:.01em;
+       color:var(--tertiary);background:none;border:1px solid transparent;border-radius:7px;
+       padding:5px 10px;cursor:default;white-space:nowrap;
+       transition:color .14s,background-color .14s,border-color .14s}
+  .tab:hover{color:var(--secondary)}
+  .tab[aria-selected=true]{color:var(--primary);background:var(--well);border-color:var(--separator)}
+  .tab:focus-visible{outline:none;border-color:var(--secondary)}
+  .scap{font-size:13px;color:var(--tertiary);margin-bottom:14px;text-wrap:pretty;max-width:44em;
+        min-height:3em}
+
   .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .block{display:flex;flex-direction:column;gap:8px;border:1px solid var(--separator);
          border-radius:var(--r);padding:12px;transition:background .12s,border-color .12s}
@@ -177,7 +190,8 @@
     .screen{padding:36px 20px calc(var(--bar) + 24px);scroll-snap-align:start;scroll-snap-stop:always}
     .back{appearance:none;background:none;border:0;padding:0 6px 0 0;margin:0;font:inherit;
           color:var(--secondary);cursor:default}
-    .block{padding:14px 13px}          /* roomier tap targets */
+    .block{padding:12px 12px}          /* roomier tap targets, without spending the screen */
+    .grid{gap:6px}
     /* the plan is the tallest screen, so its rows tighten up to stay in one view */
     :root{--row:52px}
     .amt{padding:12px}
@@ -193,6 +207,9 @@
      screens are the tall ones. Everything gives a little so a screen stays a screen. */
   @media (hover:none) and (pointer:coarse) and (max-height:760px){
     :root{--row:46px}
+    .tabs{margin-bottom:8px}
+    .tab{padding:4px 9px}
+    .scap{font-size:12px;margin-bottom:10px;min-height:0}
     .screen{padding:28px 20px calc(var(--bar) + 18px)}
     h1{font-size:26px}
     h2{font-size:20px}
@@ -226,10 +243,13 @@
     <div class="in">
       <p class="no">Screen 2 · the tree</p>
       <h2>Holdings live in groups. Or not.</h2>
-      <p class="say">Each group has a target allocation you set. Groups can be regions, asset types, industries, whatever works for your strategy. Groups can also hold groups, to any depth. Your portfolio can hold as many groups or individual assets as you want.</p>
+      <p class="say only-desktop">Each group has a target allocation you set, and groups can hold groups, to any depth. What a group <em>means</em> is yours to decide: regions, industries, asset classes. Below is one portfolio grouped three ways — pick a tab, and the plan on the next screen follows it.</p>
+      <p class="say only-touch">Each group has a target allocation you set, and groups can hold groups, to any depth. What a group <em>means</em> is yours to decide. Here is one portfolio grouped three ways.</p>
       <div class="widget">
         <div class="prompt"><kbd>Return</kbd><span>press Return to experiment with a Cola grid</span></div>
         <div class="wbody">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Ways to group a portfolio"></div>
+        <p class="scap" id="scap"></p>
         <div class="crumb" id="crumb"></div>
         <div class="grid" id="tgrid"></div>
         <div class="foot"><span id="tsum"></span><span class="tnum" id="tval"></span></div>
@@ -302,7 +322,7 @@
   <div class="count" id="count"></div>
 </div>
 
-<script>window.COLA = {"currency":"$","currency_code":"USD","follow_visitor":true,"locale":"en-US","max_orders":6,"default_orders":4,"default_amount":1000,"portfolio":[{"name":"United States","weight":50,"children":[{"name":"S&P 500 Core","weight":70,"shared":true,"children":[{"name":"Vanguard S&P 500","sym":"VOO","price":505.1,"value":2700},{"name":"iShares Core S&P 500","sym":"IVV","price":551.3,"value":1800}]},{"name":"US Small Cap Value","weight":30,"sym":"AVUV","price":97.6,"value":1900}]},{"name":"Developed ex-US","weight":20,"children":[{"name":"Developed Markets","weight":50,"sym":"VEA","price":51.8,"value":900},{"name":"International Small Cap","weight":30,"sym":"VSS","price":128.4,"value":400},{"name":"Treasury Bonds","weight":20,"sym":"GOVT","price":22.9,"value":300}]},{"name":"Europe","weight":20,"children":[{"name":"Developed Europe","weight":65,"sym":"VGK","price":68.3,"value":1100},{"name":"Europe Small Cap","weight":35,"sym":"DFSE","price":32.15,"value":400}]},{"name":"Emerging Markets","weight":10,"shared":true,"children":[{"name":"Core MSCI Emerging","sym":"IEMG","price":55.4,"value":300},{"name":"FTSE Emerging","sym":"VWO","price":46.2,"value":200}]}],"screens":[{"id":"title","hints":[{"key":"↓","label":"next"},{"key":"1–6","label":"jump"}],"hints_active":[],"hints_touch":[{"key":"swipe up","label":"next screen"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"tree","hints":[{"key":"↓ ↑","label":"screens"},{"key":"Return","label":"try Cola"}],"hints_active":[{"key":"← → ↑ ↓","label":"move"},{"key":"Return","label":"open group"},{"key":"Escape","label":"done"}],"hints_touch":[{"key":"tap a group","label":"open it"},{"key":"‹","label":"back"}],"prompt":"press Return to experiment with a Cola grid","prompt_active":"arrows move · Return opens a group · Escape when done","prompt_touch":"tap a group to look inside it","prompt_kbd":"","prompt_kbd_touch":"Tap","live":false,"widget":true,"label_targets":"Targets {sum}","label_no_targets":"No targets at this level","note_shared":"{name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies. Return to look inside.","note_shared_touch":"{name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies.","note_group":"Return opens {name}. Escape comes back out.","note_group_touch":"Tap any group to look inside it.","note_leaf":"Escape comes back out.","note_dormant":"Four groups, ten holdings. Press arrows to navigate.","note_dormant_touch":"Four groups, ten holdings. Tap one to look inside."},{"id":"plan","hints":[{"key":"↓ ↑","label":"screens"},{"key":"← →","label":"how many orders"},{"key":"Return","label":"type an amount"}],"hints_active":[],"hints_touch":[{"key":"tap the amount","label":"edit it"},{"key":"drag the bar","label":"how many orders"}],"prompt":"live — this one calculates as you type","prompt_active":"","prompt_touch":"live — tap the amount, drag the bar","prompt_kbd":"← →","prompt_kbd_touch":"Live","live":true,"widget":true,"label_invest":"To invest","label_order":"order","label_orders":"orders","label_skip":"past its target","label_of_target":"{pct} of target","label_total":"{total} today, {projected} once this lands","label_placed":"{sum} placed","label_or":"or","label_empty":"Enter an amount"},{"id":"buying","hints":[{"key":"↓ ↑","label":"screens"}],"hints_active":[],"hints_touch":[{"key":"swipe","label":"screens"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"keys","hints":[{"key":"↓ ↑","label":"screens"}],"hints_active":[],"hints_touch":[{"key":"swipe","label":"screens"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"get","hints":[{"key":"↑","label":"back"},{"key":"1","label":"start over"}],"hints_active":[],"hints_touch":[{"key":"swipe down","label":"back"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false}]};</script>
+<script>window.COLA = {"currency":"$","currency_code":"USD","follow_visitor":true,"locale":"en-US","max_orders":6,"default_orders":4,"default_amount":1000,"portfolios":[{"name":"By region","note":"One target per part of the world, so a rally in one place does not quietly become your whole portfolio.","tree":[{"name":"United States","weight":50,"children":[{"name":"S&P 500 Core","weight":70,"shared":true,"children":[{"name":"Vanguard S&P 500","sym":"VOO","price":505.1,"value":2700},{"name":"iShares Core S&P 500","sym":"IVV","price":551.3,"value":1800}]},{"name":"US Small Cap Value","weight":30,"sym":"AVUV","price":97.6,"value":1900}]},{"name":"Developed ex-US","weight":20,"children":[{"name":"Developed Markets","weight":50,"sym":"VEA","price":51.8,"value":900},{"name":"International Small Cap","weight":30,"sym":"VSS","price":128.4,"value":400},{"name":"Treasury Bonds","weight":20,"sym":"GOVT","price":22.9,"value":300}]},{"name":"Europe","weight":20,"children":[{"name":"Developed Europe","weight":65,"sym":"VGK","price":68.3,"value":1100},{"name":"Europe Small Cap","weight":35,"sym":"DFSE","price":32.15,"value":400}]},{"name":"Emerging Markets","weight":10,"shared":true,"children":[{"name":"Core MSCI Emerging","sym":"IEMG","price":55.4,"value":300},{"name":"FTSE Emerging","sym":"VWO","price":46.2,"value":200}]}]},{"name":"By industry","note":"A stock picker's book, held to a shape. Conviction decides what goes in each sector; the targets decide how big it gets.","tree":[{"name":"Technology","weight":35,"children":[{"name":"Alphabet","weight":30,"shared":true,"children":[{"name":"Alphabet Class A","sym":"GOOGL","price":178.2,"value":1400},{"name":"Alphabet Class C","sym":"GOOG","price":179.6,"value":900}]},{"name":"Semiconductors","weight":45,"children":[{"name":"NVIDIA","weight":60,"sym":"NVDA","price":121.4,"value":1600},{"name":"ASML","weight":40,"sym":"ASML","price":712.3,"value":800}]},{"name":"Microsoft","weight":25,"sym":"MSFT","price":421.8,"value":1200}]},{"name":"Healthcare","weight":20,"children":[{"name":"Eli Lilly","weight":55,"sym":"LLY","price":812.5,"value":900},{"name":"Novo Nordisk","weight":45,"sym":"NVO","price":118.7,"value":600}]},{"name":"Financials","weight":25,"children":[{"name":"JPMorgan","weight":50,"sym":"JPM","price":212.4,"value":1100},{"name":"Visa","weight":50,"sym":"V","price":289.1,"value":700}]},{"name":"Energy","weight":20,"children":[{"name":"Shell","weight":60,"sym":"SHEL","price":68.9,"value":500},{"name":"TotalEnergies","weight":40,"sym":"TTE","price":64.2,"value":300}]}]},{"name":"By asset class","note":"Funds, single names, property and bonds each hold their own share, so one of them growing fast does not decide the mix for you.","tree":[{"name":"Equity ETFs","weight":45,"children":[{"name":"S&P 500","weight":60,"shared":true,"children":[{"name":"Vanguard S&P 500","sym":"VOO","price":505.1,"value":2000},{"name":"iShares Core S&P 500","sym":"IVV","price":551.3,"value":1200}]},{"name":"World ex-US","weight":40,"sym":"VXUS","price":62.4,"value":2400}]},{"name":"Individual stocks","weight":20,"children":[{"name":"Berkshire Hathaway","weight":50,"sym":"BRK-B","price":452.8,"value":1200},{"name":"Costco","weight":50,"sym":"COST","price":878.4,"value":800}]},{"name":"Real assets","weight":20,"children":[{"name":"US REITs","weight":70,"sym":"VNQ","price":92.6,"value":900},{"name":"Gold","weight":30,"sym":"IAU","price":48.7,"value":400}]},{"name":"Bonds","weight":15,"children":[{"name":"Treasuries","weight":60,"sym":"GOVT","price":22.9,"value":700},{"name":"Corporate","weight":40,"sym":"LQD","price":108.3,"value":400}]}]}],"screens":[{"id":"title","hints":[{"key":"↓","label":"next"},{"key":"1–6","label":"jump"}],"hints_active":[],"hints_touch":[{"key":"swipe up","label":"next screen"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"tree","hints":[{"key":"↓ ↑","label":"screens"},{"key":"← →","label":"strategy"},{"key":"Return","label":"try Cola"}],"hints_active":[{"key":"← → ↑ ↓","label":"move"},{"key":"Return","label":"open group"},{"key":"Escape","label":"done"}],"hints_touch":[{"key":"tap a tab","label":"strategy"},{"key":"tap a group","label":"open it"},{"key":"‹","label":"back"}],"prompt":"press Return to experiment with a Cola grid","prompt_active":"arrows move · Return opens a group · Escape when done","prompt_touch":"tap a group to look inside it","prompt_kbd":"","prompt_kbd_touch":"Tap","live":false,"widget":true,"label_strategies":"Ways to group a portfolio","label_targets":"Targets {sum}","label_no_targets":"No targets at this level","note_shared":"{name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies. Return to look inside.","note_shared_touch":"{name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies.","note_group":"Return opens {name}. Escape comes back out.","note_group_touch":"Tap any group to look inside it.","note_leaf":"Escape comes back out.","note_dormant":"{groups} groups, {holdings} holdings. Press arrows to navigate.","note_dormant_touch":"{groups} groups, {holdings} holdings. Tap one to look inside."},{"id":"plan","hints":[{"key":"↓ ↑","label":"screens"},{"key":"← →","label":"how many orders"},{"key":"Return","label":"type an amount"}],"hints_active":[],"hints_touch":[{"key":"tap the amount","label":"edit it"},{"key":"drag the bar","label":"how many orders"}],"prompt":"live — this one calculates as you type","prompt_active":"","prompt_touch":"live — tap the amount, drag the bar","prompt_kbd":"← →","prompt_kbd_touch":"Live","live":true,"widget":true,"label_invest":"To invest","label_order":"order","label_orders":"orders","label_skip":"past its target","label_of_target":"{pct} of target","label_total":"{total} today, {projected} once this lands","label_placed":"{sum} placed","label_or":"or","label_empty":"Enter an amount"},{"id":"buying","hints":[{"key":"↓ ↑","label":"screens"}],"hints_active":[],"hints_touch":[{"key":"swipe","label":"screens"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"keys","hints":[{"key":"↓ ↑","label":"screens"}],"hints_active":[],"hints_touch":[{"key":"swipe","label":"screens"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false},{"id":"get","hints":[{"key":"↑","label":"back"},{"key":"1","label":"start over"}],"hints_active":[],"hints_touch":[{"key":"swipe down","label":"back"}],"prompt":"","prompt_active":"","prompt_touch":"","prompt_kbd":"","prompt_kbd_touch":"","live":false,"widget":false}]};</script>
 <script>
 (function(){
   "use strict";
@@ -394,9 +414,13 @@
   function pct1(n){   return f_pct1.format(n / 100); }   // takes 62.5, prints 62.5%
   function pct0(n){   return f_pct0.format(n / 100); }
 
-  var tree = C.portfolio;
+  // One strategy per tab: the same portfolio grouped a different way. Both widgets read
+  // whichever is selected, so a reader sees that grouping through to the orders it produces.
+  var STRATS = C.portfolios, strat = 0, tree = STRATS[0].tree;
   function val(n){ return n.children ? n.children.reduce(function(s,c){return s+val(c);},0) : n.value; }
-  var total = tree.reduce(function(s,n){return s+val(n);},0);
+  var total = 0;
+  function retotal(){ total = tree.reduce(function(s,n){return s+val(n);},0); }
+  retotal();
 
   /* ---------- tree widget ---------- */
   var path = [], sel = 0, TL = S.tree || {};
@@ -445,8 +469,13 @@
       // While dormant the grid holds no selection, so a line about the selected group
       // would describe something the reader cannot see.
       var pick = function(k){ return (TOUCH && TL[k + "_touch"]) || TL[k] || ""; };
+      var count = function(ns, acc){
+        ns.forEach(function(n){ if(n.children){ acc.g++; count(n.children, acc); } else acc.h++; });
+        return acc;
+      };
+      var c = count(tree, {g:0, h:0});
       note.textContent = (!TOUCH && active !== "tree")
-        ? pick("note_dormant")
+        ? t(pick("note_dormant"), {groups: c.g, holdings: c.h})
         : cur && cur.children
           ? t(pick(cur.shared ? "note_shared" : "note_group"), {name: cur.name})
           : pick("note_leaf");
@@ -467,6 +496,31 @@
   }
   function drill(){ var n = level()[sel]; if(n && n.children){ path.push(n); sel = 0; renderTree(); } }
   function up(){ if(path.length){ path.pop(); sel = 0; renderTree(); } }
+
+  /* ---------- plan widget ---------- */
+  /* ---------- strategies ---------- */
+  function renderTabs(){
+    var host = document.getElementById("tabs"); if(!host) return;
+    host.style.display = STRATS.length > 1 ? "" : "none";
+    host.innerHTML = STRATS.map(function(st, i){
+      return '<button class="tab" type="button" role="tab" data-i="' + i + '"'
+           + ' aria-selected="' + (i === strat) + '">' + st.name + '</button>';
+    }).join("");
+    Array.prototype.forEach.call(host.querySelectorAll(".tab"), function(el){
+      el.addEventListener("click", function(){ setStrategy(+el.dataset.i); });
+    });
+    var cap = document.getElementById("scap");
+    if(cap) cap.textContent = STRATS[strat].note || "";
+  }
+
+  function setStrategy(i){
+    var n = (i + STRATS.length) % STRATS.length;
+    if(n === strat) return;
+    strat = n; tree = STRATS[n].tree; retotal();
+    path = []; sel = 0;              // a different grouping has a different top level
+    renderTabs(); renderTree(); plan();
+    geom = null;                     // both widget screens just changed height
+  }
 
   /* ---------- plan widget ---------- */
   var PL = S.plan || {}, budget = C.default_amount, limit = C.default_orders;
@@ -723,9 +777,12 @@
   deck.addEventListener("scroll", activeFromScroll, {passive:true});
 
   // pointing at a widget hands it the keys too
+  renderTabs();
+
   screens.forEach(function(s,i){
     var w = widgetOf(i); if(!w) return;
-    w.addEventListener("pointerdown", function(){
+    w.addEventListener("pointerdown", function(e){
+      if(e.target.closest && e.target.closest(".tabs")) return;   // picking a strategy is not engaging the grid
       if(!isLive(idOf(i)) && active !== idOf(i)){ at = i; activate(); }
     });
     var pr = w.querySelector(".prompt");
@@ -759,6 +816,13 @@
       }
       if(e.key === "Enter" ){ e.preventDefault(); flash("Return"); drill(); return; }
       if(e.key === "Escape"){ e.preventDefault(); flash("Escape"); if(path.length) up(); else release(); return; }
+    }
+
+    // Dormant, the grid has no selection for the horizontal arrows to move, so they pick
+    // the strategy instead. Awake, they belong to the grid.
+    if(id === "tree" && active !== "tree" && STRATS.length > 1){
+      if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); setStrategy(strat+1); return; }
+      if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); setStrategy(strat-1); return; }
     }
 
     if(id === "plan"){

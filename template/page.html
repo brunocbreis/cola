@@ -58,6 +58,19 @@
 
   .crumb{font-size:13px;color:var(--tertiary);margin-bottom:12px;height:20px}
   .crumb i{font-style:normal;color:var(--quaternary)}
+  /* One tab per way of grouping. Selected reads at full brightness against a well; the
+     rest sit at tertiary, which is the same contrast-only hierarchy the app uses. */
+  .tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{appearance:none;font:inherit;font-size:12px;font-weight:590;letter-spacing:.01em;
+       color:var(--tertiary);background:none;border:1px solid transparent;border-radius:7px;
+       padding:5px 10px;cursor:default;white-space:nowrap;
+       transition:color .14s,background-color .14s,border-color .14s}
+  .tab:hover{color:var(--secondary)}
+  .tab[aria-selected=true]{color:var(--primary);background:var(--well);border-color:var(--separator)}
+  .tab:focus-visible{outline:none;border-color:var(--secondary)}
+  .scap{font-size:13px;color:var(--tertiary);margin-bottom:14px;text-wrap:pretty;max-width:44em;
+        min-height:3em}
+
   .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .block{display:flex;flex-direction:column;gap:8px;border:1px solid var(--separator);
          border-radius:var(--r);padding:12px;transition:background .12s,border-color .12s}
@@ -176,7 +189,8 @@
     .screen{padding:36px 20px calc(var(--bar) + 24px);scroll-snap-align:start;scroll-snap-stop:always}
     .back{appearance:none;background:none;border:0;padding:0 6px 0 0;margin:0;font:inherit;
           color:var(--secondary);cursor:default}
-    .block{padding:14px 13px}          /* roomier tap targets */
+    .block{padding:12px 12px}          /* roomier tap targets, without spending the screen */
+    .grid{gap:6px}
     /* the plan is the tallest screen, so its rows tighten up to stay in one view */
     :root{--row:52px}
     .amt{padding:12px}
@@ -192,6 +206,9 @@
      screens are the tall ones. Everything gives a little so a screen stays a screen. */
   @media (hover:none) and (pointer:coarse) and (max-height:760px){
     :root{--row:46px}
+    .tabs{margin-bottom:8px}
+    .tab{padding:4px 9px}
+    .scap{font-size:12px;margin-bottom:10px;min-height:0}
     .screen{padding:28px 20px calc(var(--bar) + 18px)}
     h1{font-size:26px}
     h2{font-size:20px}
@@ -311,9 +328,13 @@
   function pct1(n){   return f_pct1.format(n / 100); }   // takes 62.5, prints 62.5%
   function pct0(n){   return f_pct0.format(n / 100); }
 
-  var tree = C.portfolio;
+  // One strategy per tab: the same portfolio grouped a different way. Both widgets read
+  // whichever is selected, so a reader sees that grouping through to the orders it produces.
+  var STRATS = C.portfolios, strat = 0, tree = STRATS[0].tree;
   function val(n){ return n.children ? n.children.reduce(function(s,c){return s+val(c);},0) : n.value; }
-  var total = tree.reduce(function(s,n){return s+val(n);},0);
+  var total = 0;
+  function retotal(){ total = tree.reduce(function(s,n){return s+val(n);},0); }
+  retotal();
 
   /* ---------- tree widget ---------- */
   var path = [], sel = 0, TL = S.tree || {};
@@ -362,8 +383,13 @@
       // While dormant the grid holds no selection, so a line about the selected group
       // would describe something the reader cannot see.
       var pick = function(k){ return (TOUCH && TL[k + "_touch"]) || TL[k] || ""; };
+      var count = function(ns, acc){
+        ns.forEach(function(n){ if(n.children){ acc.g++; count(n.children, acc); } else acc.h++; });
+        return acc;
+      };
+      var c = count(tree, {g:0, h:0});
       note.textContent = (!TOUCH && active !== "tree")
-        ? pick("note_dormant")
+        ? t(pick("note_dormant"), {groups: c.g, holdings: c.h})
         : cur && cur.children
           ? t(pick(cur.shared ? "note_shared" : "note_group"), {name: cur.name})
           : pick("note_leaf");
@@ -384,6 +410,31 @@
   }
   function drill(){ var n = level()[sel]; if(n && n.children){ path.push(n); sel = 0; renderTree(); } }
   function up(){ if(path.length){ path.pop(); sel = 0; renderTree(); } }
+
+  /* ---------- plan widget ---------- */
+  /* ---------- strategies ---------- */
+  function renderTabs(){
+    var host = document.getElementById("tabs"); if(!host) return;
+    host.style.display = STRATS.length > 1 ? "" : "none";
+    host.innerHTML = STRATS.map(function(st, i){
+      return '<button class="tab" type="button" role="tab" data-i="' + i + '"'
+           + ' aria-selected="' + (i === strat) + '">' + st.name + '</button>';
+    }).join("");
+    Array.prototype.forEach.call(host.querySelectorAll(".tab"), function(el){
+      el.addEventListener("click", function(){ setStrategy(+el.dataset.i); });
+    });
+    var cap = document.getElementById("scap");
+    if(cap) cap.textContent = STRATS[strat].note || "";
+  }
+
+  function setStrategy(i){
+    var n = (i + STRATS.length) % STRATS.length;
+    if(n === strat) return;
+    strat = n; tree = STRATS[n].tree; retotal();
+    path = []; sel = 0;              // a different grouping has a different top level
+    renderTabs(); renderTree(); plan();
+    geom = null;                     // both widget screens just changed height
+  }
 
   /* ---------- plan widget ---------- */
   var PL = S.plan || {}, budget = C.default_amount, limit = C.default_orders;
@@ -640,9 +691,12 @@
   deck.addEventListener("scroll", activeFromScroll, {passive:true});
 
   // pointing at a widget hands it the keys too
+  renderTabs();
+
   screens.forEach(function(s,i){
     var w = widgetOf(i); if(!w) return;
-    w.addEventListener("pointerdown", function(){
+    w.addEventListener("pointerdown", function(e){
+      if(e.target.closest && e.target.closest(".tabs")) return;   // picking a strategy is not engaging the grid
       if(!isLive(idOf(i)) && active !== idOf(i)){ at = i; activate(); }
     });
     var pr = w.querySelector(".prompt");
@@ -676,6 +730,13 @@
       }
       if(e.key === "Enter" ){ e.preventDefault(); flash("Return"); drill(); return; }
       if(e.key === "Escape"){ e.preventDefault(); flash("Escape"); if(path.length) up(); else release(); return; }
+    }
+
+    // Dormant, the grid has no selection for the horizontal arrows to move, so they pick
+    // the strategy instead. Awake, they belong to the grid.
+    if(id === "tree" && active !== "tree" && STRATS.length > 1){
+      if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); setStrategy(strat+1); return; }
+      if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); setStrategy(strat-1); return; }
     }
 
     if(id === "plan"){

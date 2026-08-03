@@ -13,7 +13,7 @@ site/
     4-order.md        rank / split / skip
     5-keys.md         app shortcuts
     6-get.md          download screen
-    portfolio.md      the example holdings
+    portfolio.md      the example portfolios, one per strategy tab
   template/page.html  layout, styles, behavior
   build.mjs           the builder
   index.html          generated — do not edit
@@ -114,9 +114,34 @@ A block of copy can also belong to one kind of device, by opening with `[touch]`
 Both are written into the page and one is hidden by media query, so a phone that
 reports a mouse still reads sentences that match its input.
 
-## The example portfolio
+## The example portfolios
 
-`portfolio.md` is one table. Depth is the number of leading dashes:
+`portfolio.md` holds one strategy per `##` heading, each shown as a tab on the tree
+screen. The `>` line under a heading is the caption printed beneath the tabs, which is
+where the case for that way of grouping gets made.
+
+```markdown
+## By industry
+
+> A stock picker's book, held to a shape. Conviction decides what goes in each
+> sector; the targets decide how big it gets.
+
+| Holding | Weight | Ticker | Price | Value | Shared |
+|---|---|---|---|---|---|
+| Technology | 35 | | | | |
+| - Alphabet | 30 | | | | yes |
+| -- Alphabet Class A | | GOOGL | 178.20 | 1400 | |
+```
+
+Add a fourth heading and a fourth tab appears. Delete all the headings and the file
+falls back to being one table with no tabs, as it was.
+
+Both widgets read whichever strategy is selected, so the plan on screen 3 is computed
+from the tab showing on screen 2 — the point being that a grouping is not decoration, it
+decides what you are told to buy. Keep the totals across strategies equal if you want
+them to compare like with like.
+
+Depth is the number of leading dashes:
 
 ```
 | United States | 50 | | | | |
@@ -133,6 +158,10 @@ currency — see below.
 
 Change any of it and the plan screen recalculates from the new numbers, since the
 ranking and the split are computed in the page rather than written down.
+
+On desktop the tabs are picked with `← →` while the tree screen is dormant, which is when
+the grid has no selection for those keys to move; awake, they belong to the grid again.
+The tabs stay clickable in both states, and a click on one leaves the screen dormant.
 
 ## The reader's own currency
 

@@ -2,6 +2,20 @@
 
 Newest first. One entry per published change to the site.
 
+## Three ways to group — 3 August 2026
+
+The tree screen argued that groups are useful with a single example, which only made the
+case for that one reader. It now carries three.
+
+- `portfolio.md` holds one strategy per `##` heading: by region, by industry, by asset
+  class. Each is a tab on the tree screen, with a caption making the case for it.
+- Both widgets read the selected strategy, so the plan on screen 3 is computed from the
+  grouping showing on screen 2.
+- `← →` pick a strategy while the tree screen is dormant, where the grid has no selection
+  for them to move. Tabs are buttons, so they stay clickable and tappable in any state.
+- The dormant note counts the groups and holdings of the strategy showing, rather than
+  naming one portfolio's figures.
+
 ## One screen per swipe — 3 August 2026
 
 Touch scrolling had gone continuous, losing the sense of one screen at a time.

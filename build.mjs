@@ -58,6 +58,23 @@ function blocks(body) {
   return out.join("\n      ");
 }
 
+/* ---------- portfolio file -> one strategy per "## heading" ---------- */
+function strategies(src) {
+  const parts = src.split(/^##\s+/m).slice(1);
+  // A file with no headings is a single unnamed strategy, which is what it used to be.
+  if (!parts.length) return [{ name: "", note: "", tree: portfolio(src) }];
+  return parts.map((part) => {
+    const [head, ...rest] = part.split(/\r?\n/);
+    const body = rest.join("\n");
+    const note = rest
+      .filter((l) => l.trim().startsWith(">"))
+      .map((l) => l.trim().replace(/^>\s?/, ""))
+      .join(" ")
+      .trim();
+    return { name: head.trim(), note, tree: portfolio(body) };
+  }).filter((s) => s.tree.length);
+}
+
 /* ---------- portfolio table -> nested tree ---------- */
 function portfolio(src) {
   const rows = src
@@ -100,6 +117,8 @@ const WIDGET = {
   tree: `
       <div class="widget">${PROMPT}
         <div class="wbody">
+        <div class="tabs" id="tabs" role="tablist" aria-label="{{label_strategies}}"></div>
+        <p class="scap" id="scap"></p>
         <div class="crumb" id="crumb"></div>
         <div class="grid" id="tgrid"></div>
         <div class="foot"><span id="tsum"></span><span class="tnum" id="tval"></span></div>
@@ -131,7 +150,7 @@ const ARROW = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><
 
 function build() {
   const site = frontmatter(readFileSync(join(CONTENT, "site.md"), "utf8")).meta;
-  const tree = portfolio(readFileSync(join(CONTENT, "portfolio.md"), "utf8"));
+  const strats = strategies(readFileSync(join(CONTENT, "portfolio.md"), "utf8"));
 
   // The icon is inlined as a data URI, which keeps index.html the only file to publish.
   let iconURI = "";
@@ -201,6 +220,7 @@ function build() {
     if (meta.widget) {
       inner += WIDGET[meta.widget]
         .replace(/\{\{label_invest\}\}/g, esc(meta.label_invest || ""))
+        .replace(/\{\{label_strategies\}\}/g, esc(meta.label_strategies || "Strategies"))
         .replace(/\{\{amount\}\}/g, esc(site.default_amount || "1000"))
         .replace(/\{\{currency\}\}/g, esc(site.currency || "€"))
         .replace(/\{\{label_orders\}\}/g, esc(meta.label_orders || "orders"))
@@ -226,7 +246,7 @@ function build() {
     max_orders: Number(site.max_orders || 6),
     default_orders: Number(site.default_orders || 4),
     default_amount: Number(site.default_amount || 1000),
-    portfolio: tree,
+    portfolios: strats,
     screens,
   };
 
@@ -240,9 +260,10 @@ function build() {
     .replace("{{DATA}}", JSON.stringify(data));
 
   writeFileSync(join(root, "index.html"), page);
-  const leaves = (function count(ns){ return ns.reduce((s,n)=> s + (n.children ? count(n.children) : 1), 0); })(tree);
+  const count = (ns) => ns.reduce((s,n)=> s + (n.children ? count(n.children) : 1), 0);
+  const held = strats.map((st) => `${st.name || "portfolio"} ${count(st.tree)}`).join(", ");
   const kb = (n) => (n / 1024).toFixed(0) + " kB";
-  console.log(`built index.html — ${files.length} screens, ${leaves} holdings` +
+  console.log(`built index.html — ${files.length} screens, holdings: ${held}` +
     (iconURI ? `, icon inlined (${kb(iconURI.length)})` : ", no icon") +
     ` — ${kb(page.length)} total`);
 }
