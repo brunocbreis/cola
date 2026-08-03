@@ -818,6 +818,10 @@
   document.addEventListener("keydown", function(e){
     var id = idOf(at);
 
+    // The page claims nothing under Command or Control, so those combinations belong to the
+    // browser and are left alone: ⌘← is Back, ⌘R reloads, ⌘L goes to the address bar.
+    if(e.metaKey || e.ctrlKey) return;
+
     // inside the amount field: let text editing have the keys
     if(document.activeElement === amount){
       if(e.key === "Escape" || e.key === "Enter"){ e.preventDefault(); amount.blur(); }
@@ -826,12 +830,13 @@
 
     if(active === "tree" && id === "tree"){
       var nodes = level(), c = cols(), rows = Math.ceil(nodes.length/c), row = Math.floor(sel/c);
-      // Held with Command, the horizontal arrows keep the meaning they have while the screen
+      // Held with Option, the horizontal arrows keep the meaning they have while the screen
       // is dormant — pick a portfolio — so the reader can compare all three without dropping
-      // out of the grid.
-      if((e.metaKey || e.ctrlKey) && STRATS.length > 1){
-        if(e.key === "ArrowRight"){ e.preventDefault(); flash("⌘→"); setStrategy(strat+1); return; }
-        if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("⌘←"); setStrategy(strat-1); return; }
+      // out of the grid. Option rather than Command: ⌘← is Back, and a page has no business
+      // taking that. Outside a text field, ⌥← does nothing on macOS.
+      if(e.altKey && STRATS.length > 1){
+        if(e.key === "ArrowRight"){ e.preventDefault(); flash("⌥→"); setStrategy(strat+1); return; }
+        if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("⌥←"); setStrategy(strat-1); return; }
       }
       if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); sel = Math.min(sel+1, nodes.length-1); renderTree(); return; }
       if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); sel = Math.max(sel-1, 0); renderTree(); return; }

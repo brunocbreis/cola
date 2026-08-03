@@ -182,8 +182,9 @@ ranking and the split are computed in the page rather than written down.
 
 On desktop the tabs are picked with `← →` while the tree screen is dormant, which is when
 the grid has no selection for those keys to move. Awake, the plain arrows belong to the
-grid and `⌘← ⌘→` keep the meaning they had, so all three portfolios can be compared
-without leaving the grid or reaching for the mouse. The tabs stay clickable in both
+grid and `⌥← ⌥→` keep the meaning they had, so all three portfolios can be compared
+without leaving the grid or reaching for the mouse. The page claims nothing under Command
+or Control, which are returned to the browser untouched. The tabs stay clickable in both
 states, and a click on one leaves the screen dormant.
 
 ## The reader's own currency
