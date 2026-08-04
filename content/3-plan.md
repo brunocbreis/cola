@@ -5,7 +5,7 @@ eyebrow: Screen 3 · the plan
 heading: Simulate investment day
 live: yes
 hints: ↓ ↑ = screens | ← → = how many orders | Return = type an amount
-hints_touch: tap the amount = edit it | drag the bar = how many orders
+hints_touch: tap the amount = edit it | drag the slider = how many orders
 label_invest: To invest
 label_order: order
 label_orders: orders
@@ -16,4 +16,6 @@ label_placed: {sum} placed
 label_or: or
 label_empty: Enter an amount
 ---
-Try it. Type an amount, press ←/→ to set how many orders you want to place, and Cola works out what to buy and how much of each.
+[desktop] Try it. Type an amount, press ←/→ to set how many orders you want to place, and Cola works out what to buy and how much of each.
+
+[touch] Try it. Type an amount, drag the slider to limit the number of orders, and Cola works out what to buy and how much of each.

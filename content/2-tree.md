@@ -2,10 +2,10 @@
 id: tree
 widget: tree
 eyebrow: Screen 2 · the tree
-heading: Holdings live in groups. Or not.
+heading: Group holdings to map your allocation.
 label_strategies: Ways to group a portfolio
-hints: ↓ ↑ = screens | ← → = strategy | Return = try Cola
-hints_touch: tap a tab = strategy | tap a group = open it | ‹ = back
+hints: ↓ ↑ = screens | ← → = portfolio | Return = try Cola
+hints_touch: tap a tab = portfolio | tap a group = open it | ‹ = back
 hints_active: ← → ↑ ↓ = move | Return = open group | Escape = done | ⌥← ⌥→ = portfolio
 prompt: press Return to experiment with a Cola grid
 prompt_touch: tap a group to look inside it
@@ -21,6 +21,6 @@ note_leaf: Escape comes back out.
 note_dormant: {groups} groups, {holdings} holdings. Press arrows to navigate.
 note_dormant_touch: {groups} groups, {holdings} holdings. Tap one to look inside.
 ---
-[desktop] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide: regions, industries, asset classes. Check out three different portfolios below and how they use groups to encode their strategies.
+[desktop] Each group has a target you set. What a group *means* is yours to decide: regions, industries, asset classes. Check out three different portfolios below and how they use groups to encode their strategies.
 
-[touch] Each group has a target allocation you set, and groups can hold groups, to any depth. What a group *means* is yours to decide. Here are three portfolios, each with its own strategy.
+[touch] Each group has a target you set. What a group *means* is yours to decide. Here are three portfolios, each with its own strategy.

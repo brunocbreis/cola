@@ -1,6 +1,6 @@
 ---
 id: keys
-eyebrow: Screen 5 · the app
+eyebrow: Screen 5 · the keys
 heading: Keyboard first.
 hints: ↓ ↑ = screens
 hints_touch: swipe = screens

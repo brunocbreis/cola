@@ -2,6 +2,63 @@
 
 Newest first. One entry per published change to the site.
 
+## A run log on screen 4 — 4 August 2026
+
+Screen 4 argued that every line is a buy, in prose only. It now shows one, as a picture of
+the app rather than something to read.
+
+- The app's run-log dialog at the width it really is, 390px, above the eyebrow. Built from
+  the same ledger row: ticker, quantity × price, total.
+- Its top edge is solid and it dissolves down its height, over pixel stops rather than
+  percentages, so the first rows stay legible whether the run has one order or six.
+- The eyebrow starts 11px under the last row. By that point the panel is down to a tenth of
+  its strength, so the nearness is what makes the fade read as deliberate rather than
+  leaving a band of empty space between the picture and the words.
+- Dimmed, cropped by a gradient, and receding row by row, so it reads as one object rather
+  than a table asking to be totalled. No Committed line — a sum invites arithmetic.
+  `aria-hidden`, because the prose beside it says the same thing.
+- Screens 4, 5 and 6 name themselves in the eyebrow, as 2 and 3 already did: the run, the
+  keys, the app. Screen 5 held "the app" while showing shortcuts, so it takes "the keys"
+  and screen 6, which is where the app is downloaded, takes "the app".
+- The rows are the plan from screen 3, so changing the amount, the order limit or the
+  portfolio changes them. Quantities round down to a tenth of a share and totals to the
+  cent, as the app records them, so nothing in the picture contradicts the app.
+- Only bought lines appear. An asset past its target is absent rather than struck through,
+  which is the screen's claim.
+- `[widget]` on its own line in a screen's markdown says where its widget sits among the
+  paragraphs. Without one the widget goes after all of them, as before.
+
+## Snappier screen changes — 4 August 2026
+
+- Screen changes are animated by the page rather than by `scroll-behavior:smooth`, over
+  330ms on an ease-out curve. The native keyword is ease-in-out and lasts roughly half
+  again as long, spending its first third accelerating, which read as slow next to the app.
+- `scroll_ms` in `site.md` sets the duration; `?ms=` overrides it for one visit.
+- The key hints no longer light up when a key is pressed. Two of those highlights never
+  worked: `↓`, `↑` and `1`–`6` re-rendered the hint bar in the same tick, discarding the
+  element that had just been marked, and a plain `→` lit both the plain and the Option row
+  because the match was a substring test.
+- An awake grid keeps the vertical arrows and stops at its edges. Pressing `↓` on the
+  bottom row used to change screen, so overshooting a selection left the widget entirely.
+- The screen counter no longer steps through the screens passed on the way to a distant
+  one. The active screen is read from the scroll position, which was still running while
+  the page scrolled itself.
+- `motion: off` in `site.md`, or `?motion=off`, removes every desktop transition. Touch
+  keeps the platform's momentum and snap in all cases.
+
+## Copy pass — 4 August 2026
+
+Tightened the wording on the tree and plan screens.
+
+- Screen 2 leads with what groups are for rather than the fact that they are optional.
+- Screen 3 has separate desktop and touch instructions, naming the arrow keys or the
+  slider instead of describing both to everyone.
+- The tab strip is called the portfolio in both hint bars. It was the strategy under
+  plain arrows and the portfolio under Option, which read as two different actions.
+- One name for the order-limit control: the slider, in prose and in the hint bar.
+- Screen 6 describes the download instead of telling visitors to click a button that is
+  disabled until Cola is published.
+
 ## Option-arrows switch portfolios — 3 August 2026
 
 - `⌥← ⌥→` pick a portfolio while the grid is awake, where the plain arrows are busy

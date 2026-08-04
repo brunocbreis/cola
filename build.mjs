@@ -24,6 +24,9 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, 
 const inline = (s) =>
   esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
 
+// Where a screen's widget goes among its paragraphs, marked `[widget]` in the markdown.
+const WIDGET_SLOT = "\u0000widget\u0000";
+
 // Blocks: paragraph, "> note", and | tables | (rendered as the key/description grid).
 // A block may open with [touch] or [desktop] to show only on that kind of device.
 function blocks(body) {
@@ -31,6 +34,10 @@ function blocks(body) {
   for (const chunk of body.split(/\r?\n\s*\r?\n/)) {
     let lines = chunk.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     if (!lines.length) continue;
+
+    // A `[widget]` line on its own says where the screen's widget sits among the prose.
+    // Without one the widget follows every paragraph, which is where it went before.
+    if (lines.length === 1 && /^\[widget\]$/i.test(lines[0])) { out.push(WIDGET_SLOT); continue; }
 
     let only = "";
     const mk = lines[0].match(/^(>\s*)?\[(touch|desktop)\]\s*/i);
@@ -144,6 +151,14 @@ const WIDGET = {
         <div class="tot"><span id="totleft"></span><span class="tnum" id="totright"></span></div>
         </div>
       </div>`,
+  // The run log, as an illustration rather than a widget: the app's dialog at its real width,
+  // dimmed and faded out at the bottom. aria-hidden — the prose beside it makes the same point,
+  // and a screen reader has no use for a decorative receipt.
+  log: `
+      <div class="ledger" aria-hidden="true">
+        <div class="lband"><b id="rlcount"></b><span id="rldate"></span></div>
+        <div id="rlrows"></div>
+      </div>`,
 };
 
 const ARROW = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1v9.2l3.1-3.1 1.1 1.1L8 12.6 3.8 8.2l1.1-1.1L8 10.2V1zM2 13h12v1.5H2V13z"/></svg>`;
@@ -215,13 +230,13 @@ function build() {
         ? `<h1>${inline(meta.heading)}</h1>\n      `
         : `<h2>${inline(meta.heading)}</h2>\n      `;
     }
-    inner += blocks(body);
+    let prose = blocks(body);
 
     if (meta.widget) {
       // No prompt written for a screen means no prompt row: an empty chip would sit there
       // announcing nothing.
       const hasPrompt = !!(meta.prompt || meta.prompt_touch);
-      inner += WIDGET[meta.widget]
+      const w = WIDGET[meta.widget]
         .replace(/\{\{PROMPT\}\}/g, hasPrompt ? PROMPT : "")
         .replace(/\{\{label_invest\}\}/g, esc(meta.label_invest || ""))
         .replace(/\{\{label_strategies\}\}/g, esc(meta.label_strategies || "Strategies"))
@@ -231,7 +246,10 @@ function build() {
         .replace(/\{\{max_orders\}\}/g, esc(site.max_orders || "6"))
         .replace(/\{\{prompt\}\}/g, esc(meta.prompt || ""))
         .replace(/\{\{prompt_kbd\}\}/g, esc(meta.prompt_kbd || "Return"));
+      prose = prose.includes(WIDGET_SLOT) ? prose.replace(WIDGET_SLOT, () => w) : prose + w;
     }
+    prose = prose.split(WIDGET_SLOT).join("");
+    inner += prose;
     if (meta.button) {
       const off = !meta.button_href || meta.button_href === "#";
       inner += `\n      <a class="btn" id="dl" href="${esc(meta.button_href || "#")}"` +
@@ -246,6 +264,8 @@ function build() {
     currency: site.currency || "€",
     currency_code: (site.currency_code || "EUR").toUpperCase(),
     follow_visitor: !/^n/i.test(site.follow_visitor || "yes"),
+    motion: !/^(off|no|false)$/i.test(site.motion || "on"),
+    scroll_ms: Number(site.scroll_ms || 330),
     locale: site.locale || "de-DE",
     max_orders: Number(site.max_orders || 6),
     default_orders: Number(site.default_orders || 4),

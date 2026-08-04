@@ -20,12 +20,11 @@
   .tnum{font-variant-numeric:tabular-nums}
 
   .deck{height:100vh;height:100dvh;overflow-y:scroll;scroll-snap-type:y mandatory;
-        scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+        -webkit-overflow-scrolling:touch}
   .deck::-webkit-scrollbar{width:0}
   .screen{min-height:100vh;min-height:100dvh;scroll-snap-align:center;display:flex;align-items:center;
           padding:64px 28px calc(var(--bar) + 48px)}
   .in{max-width:620px;margin:0 auto;width:100%}
-  @media (prefers-reduced-motion:reduce){.deck{scroll-behavior:auto}}
 
   /* Copy marked [touch] or [desktop] in the markdown. A touch-primary device is one that
      cannot hover and has a coarse pointer, which is the standard test for a finger. */
@@ -88,6 +87,42 @@
   .r3 .pv{color:var(--tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .r3 .vl{flex:none}
   .foot{margin-top:13px;font-size:13px;color:var(--quaternary);display:flex;justify-content:space-between}
+  /* Screen 4's illustration: the app's run-log dialog at the width it actually is (390px),
+     dimmed and fading out at the bottom. It is a picture of the app, not a table to read —
+     nothing in it is primary, no total is bold, and the lower rows dissolve so the eye
+     leaves before it starts adding up. aria-hidden for the same reason. */
+  /* Screen 4's illustration: the app's run-log dialog at the width it really is (390px),
+     above the eyebrow. Its top edge is solid and it dissolves the whole way down.
+     The words start close under the last row: by then the mask has taken the panel to a
+     tenth of its strength, so the two do not compete, and the nearness is what makes the
+     fade read as deliberate. Layered above the panel, so a line of text is never behind a
+     row whatever the order count. */
+  [data-screen=buying] .in{display:flex;flex-direction:column}
+  [data-screen=buying] .in > :not(.ledger){position:relative;z-index:1}
+  [data-screen=buying] .ledger{order:-1}
+  .ledger{width:390px;max-width:100%;margin:0 0 10px;
+          border:1px solid var(--separator);border-radius:12px;background:var(--well);
+          padding:11px 12px 0;pointer-events:none;opacity:.72;
+          /* Pixel stops, not percentages: the fade is a distance from the top edge, so the
+             first rows stay legible whether the run has one order or six. */
+          -webkit-mask-image:linear-gradient(#000 60px,rgba(0,0,0,.55) 120px,transparent 200px);
+                  mask-image:linear-gradient(#000 60px,rgba(0,0,0,.55) 120px,transparent 200px)}
+  .lband{display:flex;align-items:baseline;gap:8px;font-size:11px;color:var(--quaternary);
+         border-bottom:1px solid var(--separator);padding-bottom:8px}
+  .lband b{color:var(--secondary);font-weight:510;font-size:11px}
+  .lband .lright{margin-left:auto;white-space:nowrap}
+  #rlrows{display:flex;flex-direction:column;gap:1px;padding:5px 0 0}
+  .lrow{display:flex;align-items:baseline;gap:9px;border-radius:7px;padding:5px 6px;font-size:11px;
+        color:var(--tertiary)}
+  .lrow .ls{width:44px;flex:none;color:var(--secondary);font-weight:510;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lrow .lm{flex:1;min-width:0;display:flex;align-items:baseline;gap:5px;overflow:hidden}
+  .lrow .lm em{font-style:normal;color:var(--quaternary);overflow:hidden;
+               text-overflow:ellipsis;white-space:nowrap}
+  .lrow .lt{flex:none;color:var(--secondary)}
+  /* The mask handles the recession down the panel; rows are left alone. */
+  .lfoot{display:none}       /* a total invites arithmetic; the picture does not need one */
+
   .widget{margin-top:28px}
   .prompt{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-size:12px;
           color:var(--quaternary);height:22px}
@@ -162,9 +197,7 @@
        align-items:center;gap:18px;padding:0 28px;font-size:12px;color:var(--quaternary);z-index:9}
   .hints{display:flex;gap:16px;flex:1;overflow:hidden;white-space:nowrap}
   .hint{display:flex;align-items:center;gap:6px}
-  .hint u{text-decoration:none;font-weight:590;color:var(--tertiary);transition:color .22s}
-  .hint.hit u{color:var(--primary)}
-  .hint.hit{color:var(--secondary)}
+  .hint u{text-decoration:none;font-weight:590;color:var(--tertiary)}
   .count{flex:none;font-variant-numeric:tabular-nums}
 
   @media (max-width:560px){
@@ -191,6 +224,15 @@
     h1{font-size:40px}
   }
 
+
+  /* ══ still ══ desktop only, from `motion` in site.md or ?motion= in the URL ══
+     Every rule here is a class on <html>, so it outranks the width breakpoints and the
+     touch layer below on specificity and does not depend on sitting after them. The
+     dimmed and filled states stay; only the travel between states goes. */
+  html.still *,html.still *::before,html.still *::after{
+    transition:none !important;animation:none !important}
+  html.still .btn:active{transform:none}
+
   /* ══ touch layer ══ last in the sheet, so the width breakpoints above cannot undo it ══ */
 
   /* Touch: one screen per swipe, same as one arrow press per screen. A screen taller than
@@ -211,6 +253,7 @@
     .amt{padding:12px}
     .amt input,.amt .cur{font-size:23px}
     .lim{margin:12px 0 14px}
+    .ledger{width:100%;margin-bottom:8px}
     /* every widget is live here, so it should never render dimmed even for one frame */
     .widget .wbody{opacity:1}
     .prompt{color:var(--tertiary)}
@@ -240,6 +283,19 @@
 
 </style>
 </head>
+<script>
+/* Set before the first frame so nothing animates on the way in. Desktop only: a finger
+   keeps its momentum scrolling and its snap. */
+(function(){
+  var q = /[?&]motion=(on|off)/i.exec(location.search);
+  var on = q ? q[1].toLowerCase() === "on" : null;
+  var coarse = window.matchMedia("(hover:none) and (pointer:coarse)").matches;
+  window.__MOTION = on;                      /* null = take it from the build config */
+  var m = /[?&]ms=(\d{1,4})/.exec(location.search);
+  window.__MS = m ? +m[1] : null;             /* screen-change duration, for dialling it in */
+  if(on === false && !coarse) document.documentElement.className += " still";
+})();
+</script>
 <body>
 
 <div class="deck" id="deck">
@@ -330,6 +386,14 @@
   }catch(e){}
   // A finger cannot press Return, so on touch every widget is live and taps do the work.
   var TOUCH = window.matchMedia("(hover:none) and (pointer:coarse)").matches;
+  // Motion is on unless the build or the URL turns it off, and a finger always keeps it:
+  // momentum scrolling and snap are the platform's, not the page's.
+  var MOTION = TOUCH || (window.__MOTION === null ? C.motion !== false : window.__MOTION);
+  if(!MOTION) document.documentElement.classList.add("still");
+  // How long a screen change takes, in ms. 0 is instant. `?ms=` beats scroll_ms in
+  // site.md, and a reader who has asked the system for less motion gets none.
+  var SCROLL_MS = (!MOTION || window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+        ? 0 : (window.__MS !== null ? window.__MS : (C.scroll_ms || 330));
   var S = {}; C.screens.forEach(function(s){ S[s.id] = s; });
 
   function t(str, vars){
@@ -338,6 +402,7 @@
     });
   }
   function money(n){  return f_money.format(n); }
+  function money2(n){ return f_price.format(n); }   // a ledger states cents
   function price(n){  return f_price.format(n); }
   function shares(n){ return f_shares.format(n); }
   function pct1(n){   return f_pct1.format(n / 100); }   // takes 62.5, prints 62.5%
@@ -602,6 +667,8 @@
     document.getElementById("totright").textContent = take.length
       ? t(PL.label_placed, {sum: money(take.reduce(function(s,u){return s+u.alloc;},0))}) : "";
 
+    runlog(take);   // screen 4 is the receipt for this plan
+
     var pos = (limit-1)/(C.max_orders-1)*100;
     var tr = document.getElementById("limtrack");
     tr.querySelector("i").style.width = pos+"%";
@@ -611,6 +678,48 @@
       (limit===1 ? (PL.label_order||"order") : (PL.label_orders||"orders")));
     document.getElementById("limlabel").textContent =
       limit + " " + (limit===1 ? (PL.label_order||"order") : (PL.label_orders||"orders"));
+  }
+
+  /* ---------- run log ---------- */
+  // A picture of the run the plan above would produce. The rows are real — quantities rounded
+  // down to the tenth of a share the app records, totals to the cent — so nothing here
+  // contradicts the app, but the panel is dimmed and cropped: it is there to be recognised as
+  // Cola, not read.
+  var f_day = null;
+  function runDate(){
+    if(!f_day){
+      try{ f_day = new Intl.DateTimeFormat(L, {day:"numeric", month:"short", year:"2-digit"}); }
+      catch(e){ f_day = new Intl.DateTimeFormat("en-GB", {day:"numeric", month:"short", year:"2-digit"}); }
+    }
+    return f_day.format(new Date());
+  }
+
+  function runlog(take){
+    var host = document.getElementById("rlrows"); if(!host) return;
+    var BL = S.buying || {}, html = "";
+
+    take.forEach(function(u){
+      // A shared target is two interchangeable holdings; a run buys one of them, so the log
+      // names the one that was bought rather than offering the choice again.
+      var n = u.node.children ? u.node.children[0] : u.node,
+          qty = Math.floor(u.alloc / n.price * 10) / 10,   // down: a run cannot spend more than it has
+          line = Math.round(qty * n.price * 100) / 100;    // a tenth of a share can cost half a cent
+      html += '<div class="lrow"><span class="ls">'+n.sym+'</span>'
+           +  '<span class="lm"><span class="tnum">'+shares(qty)+'</span><i>×</i>'
+           +    '<span class="tnum">'+price(n.price)+'</span>'
+           +    '<em>'+u.node.name+'</em></span>'
+           +  '<span class="lt tnum">'+money2(line)+'</span></div>';
+    });
+    host.innerHTML = html;
+
+    // No reserved height: screen 4's content is shorter than the viewport at every order count,
+    // so the screen keeps its height either way, and a reserve would leave an empty tail under
+    // the last row that pushes the words down for nothing.
+
+    var one = take.length === 1;
+    document.getElementById("rlcount").textContent =
+      t(one ? (BL.label_logged_one || BL.label_logged) : BL.label_logged, {n: take.length});
+    document.getElementById("rldate").textContent = runDate();
   }
 
   var amount = document.getElementById("amount"), amtbox = document.getElementById("amtbox"),
@@ -732,7 +841,7 @@
       // one gentle nudge the first time an untouched widget screen is reached
       if(pr){
         var want = !TOUCH && !live && i === at && !isOn && !everOn[sid];
-        pr.classList.toggle("pulse", want);
+        pr.classList.toggle("pulse", want && MOTION);
       }
     });
     renderTree();
@@ -749,31 +858,40 @@
     active = null;
     if(was === "tree"){ path = []; sel = 0; }   // back to the top level, nothing selected
     paint();
-    handback();                                  // say so in the status bar
   }
 
-  // A brief highlight on the arrow hint, so the keys visibly return to the deck.
-  function handback(){
-    Array.prototype.forEach.call(document.querySelectorAll(".hint"), function(el){
-      if(el.dataset.k.indexOf("↓") > -1 || el.dataset.k.indexOf("↑") > -1){
-        el.classList.add("hit");
-        setTimeout(function(){ el.classList.remove("hit"); }, 620);
-      }
-    });
+  // Where a screen sits when centred, which is what scroll-snap-align:center settles on.
+  // A screen taller than the viewport — the widget screens in a short window — centres too,
+  // rather than being pinned to its top edge.
+  function restOf(i){
+    var top = screens[i].offsetTop - screens[0].offsetTop,
+        pos = top + (screens[i].offsetHeight - deck.clientHeight) / 2;
+    return Math.max(0, Math.min(deck.scrollHeight - deck.clientHeight, pos));
   }
+
+  // Mandatory snap and a per-frame scrollTop disagree, so snap is suspended for the
+  // duration and handed back at the end, on the position it would have chosen anyway.
+  var anim = null;
+  function glide(to){
+    if(anim){ cancelAnimationFrame(anim); anim = null; deck.style.scrollSnapType = ""; }
+    var from = deck.scrollTop, d = to - from;
+    if(!SCROLL_MS || Math.abs(d) < 2){ deck.scrollTop = to; return; }
+    deck.style.scrollSnapType = "none";
+    var t0 = performance.now();
+    var frame = function(now){
+      var p = Math.min(1, (now - t0) / SCROLL_MS);
+      deck.scrollTop = from + d * (1 - Math.pow(1 - p, 3));   // ease-out cubic
+      if(p < 1){ anim = requestAnimationFrame(frame); return; }
+      anim = null; deck.style.scrollSnapType = ""; deck.scrollTop = to;
+    };
+    anim = requestAnimationFrame(frame);
+  }
+
   function go(i){
     release();
     at = Math.max(0, Math.min(screens.length-1, i));
-    screens[at].scrollIntoView({behavior:"smooth", block:"center"});
+    glide(restOf(at));
     paint();
-  }
-  function flash(k){
-    Array.prototype.forEach.call(document.querySelectorAll(".hint"), function(el){
-      if(el.dataset.k.indexOf(k) > -1){
-        el.classList.add("hit");
-        setTimeout(function(){ el.classList.remove("hit"); }, 140);
-      }
-    });
   }
 
   // The screen crossing the middle of the viewport is the active one, read straight from the
@@ -789,6 +907,7 @@
   window.addEventListener("resize", function(){ geom = null; });
 
   function activeFromScroll(){
+    if(anim) return;                  // a glide knows where it is going; don't guess mid-flight
     if(!geom) measure();
     var mid = deck.scrollTop + deck.clientHeight / 2, best = 0, near = Infinity;
     for(var i = 0; i < geom.length; i++){
@@ -835,46 +954,47 @@
       // out of the grid. Option rather than Command: ⌘← is Back, and a page has no business
       // taking that. Outside a text field, ⌥← does nothing on macOS.
       if(e.altKey && STRATS.length > 1){
-        if(e.key === "ArrowRight"){ e.preventDefault(); flash("⌥→"); setStrategy(strat+1); return; }
-        if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("⌥←"); setStrategy(strat-1); return; }
+        if(e.key === "ArrowRight"){ e.preventDefault(); setStrategy(strat+1); return; }
+        if(e.key === "ArrowLeft" ){ e.preventDefault(); setStrategy(strat-1); return; }
       }
-      if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); sel = Math.min(sel+1, nodes.length-1); renderTree(); return; }
-      if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); sel = Math.max(sel-1, 0); renderTree(); return; }
+      if(e.key === "ArrowRight"){ e.preventDefault(); sel = Math.min(sel+1, nodes.length-1); renderTree(); return; }
+      if(e.key === "ArrowLeft" ){ e.preventDefault(); sel = Math.max(sel-1, 0); renderTree(); return; }
+      // The vertical arrows belong to the grid for as long as it is awake, and stop at its
+      // edges. Leaving the screen is Escape, then an arrow — a screen change is never a
+      // side effect of trying to move a selection.
       if(e.key === "ArrowDown"){
         e.preventDefault();
-        if(row < rows-1){ flash("↓"); sel = Math.min(sel+c, nodes.length-1); renderTree(); }
-        else if(!path.length){ go(at+1); }        // past the last row, carry on down the deck
+        if(row < rows-1) { sel = Math.min(sel+c, nodes.length-1); renderTree(); }
         return;
       }
       if(e.key === "ArrowUp"){
         e.preventDefault();
-        if(row > 0){ flash("↑"); sel = Math.max(sel-c, 0); renderTree(); }
-        else if(!path.length){ go(at-1); }
+        if(row > 0) { sel = Math.max(sel-c, 0); renderTree(); }
         return;
       }
-      if(e.key === "Enter" ){ e.preventDefault(); flash("Return"); drill(); return; }
-      if(e.key === "Escape"){ e.preventDefault(); flash("Escape"); if(path.length) up(); else release(); return; }
+      if(e.key === "Enter" ){ e.preventDefault(); drill(); return; }
+      if(e.key === "Escape"){ e.preventDefault(); if(path.length) up(); else release(); return; }
     }
 
     // Dormant, the grid has no selection for the horizontal arrows to move, so they pick
     // the strategy instead. Awake, they belong to the grid.
     if(id === "tree" && active !== "tree" && STRATS.length > 1){
-      if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); setStrategy(strat+1); return; }
-      if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); setStrategy(strat-1); return; }
+      if(e.key === "ArrowRight"){ e.preventDefault(); setStrategy(strat+1); return; }
+      if(e.key === "ArrowLeft" ){ e.preventDefault(); setStrategy(strat-1); return; }
     }
 
     if(id === "plan"){
-      if(e.key === "ArrowRight"){ e.preventDefault(); flash("→"); limit = Math.min(limit+1, C.max_orders); plan(); return; }
-      if(e.key === "ArrowLeft" ){ e.preventDefault(); flash("←"); limit = Math.max(limit-1, 1); plan(); return; }
-      if(e.key === "Enter" && amount){ e.preventDefault(); flash("Return"); amount.focus(); amount.select(); return; }
+      if(e.key === "ArrowRight"){ e.preventDefault(); limit = Math.min(limit+1, C.max_orders); plan(); return; }
+      if(e.key === "ArrowLeft" ){ e.preventDefault(); limit = Math.max(limit-1, 1); plan(); return; }
+      if(e.key === "Enter" && amount){ e.preventDefault(); amount.focus(); amount.select(); return; }
       if(/^[0-9]$/.test(e.key) && amount){ amount.focus(); amount.select(); return; }
     }
 
     // deck
-    if(e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); flash("↓"); go(at+1); return; }
-    if(e.key === "ArrowUp"   || e.key === "PageUp"  ){ e.preventDefault(); flash("↑"); go(at-1); return; }
-    if(e.key === "Enter"){ e.preventDefault(); flash("Return"); activate(); return; }
-    if(e.key >= "1" && e.key <= String(screens.length)){ e.preventDefault(); flash("1"); go(+e.key-1); return; }
+    if(e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); go(at+1); return; }
+    if(e.key === "ArrowUp"   || e.key === "PageUp"  ){ e.preventDefault(); go(at-1); return; }
+    if(e.key === "Enter"){ e.preventDefault(); activate(); return; }
+    if(e.key >= "1" && e.key <= String(screens.length)){ e.preventDefault(); go(+e.key-1); return; }
   });
 
   var dl = document.getElementById("dl");
