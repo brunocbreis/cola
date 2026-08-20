@@ -2,6 +2,31 @@
 
 Newest first. One entry per published change to the site.
 
+## An equal-weight group in the examples — 7 August 2026
+
+The app grew a third kind of group, where the children split the target evenly and Cola
+redoes the split whenever one is added or removed. The tree screen can show one now, and
+one of the example portfolios does.
+
+- "Individual stocks", in the By asset class portfolio, is that group. It held Berkshire
+  and Costco at a hand-typed 50/50 — the exact arrangement the feature removes — and now
+  holds three names, LVMH among them, at 33,3% each. Nobody types 33,3.
+- The card carries an `EQUAL` tag where a shared group carries `SHARED`, so it reads from
+  the top level of that tab without drilling in. Selecting it says what the kind means, the
+  way selecting a shared group already did.
+- Inside it, the targets readout is left out. It would answer a question the level cannot
+  be in, since Cola owns those numbers and they always sum to 100. The app omits it there
+  for the same reason.
+- A target now prints its decimal when it has one: 50 still reads 50%, and a third of an
+  equal group reads 33,3% rather than a rounded 33% that no one chose. The rule is the
+  app's, and it changes nothing for the other two portfolios, whose weights are whole.
+- The plan reads the group as ordinary — it descends into it and ranks the children by how
+  far behind they are, so LVMH at 20% of a 33,3% target leads the orders while Berkshire,
+  past its share, is skipped and never sold.
+- In `portfolio.md` the Shared column is now Kind, taking `shared`, `equal`, or nothing at
+  all for separate targets — the same three answers the app asks for. `yes` still means
+  shared, so nothing already written has to change.
+
 ## A run log on screen 4 — 4 August 2026
 
 Screen 4 argued that every line is a buy, in prose only. It now shows one, as a picture of

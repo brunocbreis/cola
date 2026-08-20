@@ -10,7 +10,7 @@ site/
     1-title.md        opening screen
     2-tree.md         the tree screen
     3-plan.md         the plan screen
-    4-order.md        rank / split / skip
+    4-buying.md       rank / split / skip
     5-keys.md         app shortcuts
     6-get.md          download screen
     portfolio.md      the example portfolios, one per strategy tab
@@ -47,7 +47,7 @@ separated by `|`.
 ## Screen order
 
 The number in the filename sets the order and the `1`–`6` jump keys. Renaming
-`4-order.md` to `5-order.md` and `5-keys.md` to `4-keys.md` swaps them, with no
+`4-buying.md` to `5-buying.md` and `5-keys.md` to `4-keys.md` swaps them, with no
 other change. Adding `7-faq.md` adds a seventh screen.
 
 ## Dormant and awake
@@ -147,10 +147,10 @@ where the case for that way of grouping gets made.
 > A stock picker's book, held to a shape. Conviction decides what goes in each
 > sector; the targets decide how big it gets.
 
-| Holding | Weight | Ticker | Price | Value | Shared |
+| Holding | Weight | Ticker | Price | Value | Kind |
 |---|---|---|---|---|---|
 | Technology | 35 | | | | |
-| - Alphabet | 30 | | | | yes |
+| - Alphabet | 30 | | | | shared |
 | -- Alphabet Class A | | GOOGL | 178.20 | 1400 | |
 ```
 
@@ -171,11 +171,24 @@ Depth is the number of leading dashes:
 ```
 
 A row with children needs no ticker, price, or value — those sum from below.
-`yes` in the Shared column marks a group whose holdings are interchangeable
-alternatives sharing one target, which is what makes the plan offer them as
-`12.4 × EIMI or 7.0 × VFEM`. Weights need not total 100; the page normalizes
-them exactly as the app does. Values are plain numbers, read in the visitor's own
-currency — see below.
+
+The Kind column names what a group does with its children's targets, and takes the same
+three answers the app asks for when a group is made:
+
+- blank — **separate targets.** Each child carries its own weight, typed in.
+- `shared` — **one shared target.** The holdings are interchangeable alternatives, which is
+  what makes the plan offer them as `12.4 × EIMI or 7.0 × VFEM`.
+- `equal` — **equal targets.** The children split the group evenly, and the split is redone
+  whenever one is added or removed.
+
+The children of a `shared` or an `equal` group need no weight, and anything written in
+those cells is replaced: the group decides it, as the app decides it on every write. An
+equal group of three holds 33,333… each, so the level still sums to exactly 100 and the
+page prints 33,3%. `yes` still reads as `shared`, which is what the column held when
+shared was the only kind of group there was.
+
+Weights need not total 100; the page normalizes them exactly as the app does. Values are
+plain numbers, read in the visitor's own currency — see below.
 
 Change any of it and the plan screen recalculates from the new numbers, since the
 ranking and the split are computed in the page rather than written down.

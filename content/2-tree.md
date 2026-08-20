@@ -15,6 +15,8 @@ label_targets: Targets {sum}
 label_no_targets: No targets at this level
 note_shared: {name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies. Return to look inside.
 note_shared_touch: {name} is one target shared by interchangeable holdings; think two of the same ETF, but in different currencies.
+note_equal: {name} splits evenly between its holdings, and Cola redoes the split whenever one is added or removed. Return to look inside.
+note_equal_touch: {name} splits evenly between its holdings, and Cola redoes the split whenever one is added or removed.
 note_group: Return opens {name}. Escape comes back out.
 note_group_touch: Tap any group to look inside it.
 note_leaf: Escape comes back out.

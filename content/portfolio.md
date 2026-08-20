@@ -4,18 +4,20 @@ Each `##` heading below is one strategy, shown as a tab on the tree screen. The 
 under the heading is the caption printed beneath the tabs.
 
 Depth is the number of leading dashes. A row with children needs no ticker, price, or
-value — those add up from underneath. Mark a group `yes` under Shared when its holdings
-are interchangeable alternatives sharing one target.
+value — those add up from underneath. Kind says what a group does with its children's
+targets: blank for separate targets, `shared` when the holdings are interchangeable
+alternatives sharing one, `equal` when they split the group evenly. The children of a
+shared or an equal group need no weight — the group decides it.
 
 ## By region
 
 > One target per part of the world, to keep a neutral exposure or bet
 > in specific geographies.
 
-| Holding | Weight | Ticker | Price | Value | Shared |
+| Holding | Weight | Ticker | Price | Value | Kind |
 |---|---|---|---|---|---|
 | United States | 50 | | | | |
-| - S&P 500 Core | 70 | | | | yes |
+| - S&P 500 Core | 70 | | | | shared |
 | -- Vanguard S&P 500 | | VOO | 505.10 | 2700 | |
 | -- iShares Core S&P 500 | | IVV | 551.30 | 1800 | |
 | - US Small Cap Value | 30 | AVUV | 97.60 | 1900 | |
@@ -26,7 +28,7 @@ are interchangeable alternatives sharing one target.
 | Europe | 20 | | | | |
 | - Developed Europe | 65 | VGK | 68.30 | 1100 | |
 | - Europe Small Cap | 35 | DFSE | 32.15 | 400 | |
-| Emerging Markets | 10 | | | | yes |
+| Emerging Markets | 10 | | | | shared |
 | - Core MSCI Emerging | | IEMG | 55.40 | 300 | |
 | - FTSE Emerging | | VWO | 46.20 | 200 | |
 
@@ -35,10 +37,10 @@ are interchangeable alternatives sharing one target.
 > A stock picker's book, held to a shape. Conviction decides what goes in each sector;
 > the targets decide how big it gets.
 
-| Holding | Weight | Ticker | Price | Value | Shared |
+| Holding | Weight | Ticker | Price | Value | Kind |
 |---|---|---|---|---|---|
 | Technology | 35 | | | | |
-| - Alphabet | 30 | | | | yes |
+| - Alphabet | 30 | | | | shared |
 | -- Alphabet Class A | | GOOGL | 178.20 | 1400 | |
 | -- Alphabet Class C | | GOOG | 179.60 | 900 | |
 | - Semiconductors | 45 | | | | |
@@ -60,16 +62,17 @@ are interchangeable alternatives sharing one target.
 > Funds, single names, property and bonds each hold their own share, so one of them
 > growing fast does not decide the mix for you.
 
-| Holding | Weight | Ticker | Price | Value | Shared |
+| Holding | Weight | Ticker | Price | Value | Kind |
 |---|---|---|---|---|---|
 | Equity ETFs | 45 | | | | |
-| - S&P 500 | 60 | | | | yes |
+| - S&P 500 | 60 | | | | shared |
 | -- Vanguard S&P 500 | | VOO | 505.10 | 2000 | |
 | -- iShares Core S&P 500 | | IVV | 551.30 | 1200 | |
 | - World ex-US | 40 | VXUS | 62.40 | 2400 | |
-| Individual stocks | 20 | | | | |
-| - Berkshire Hathaway | 50 | BRK-B | 452.80 | 1200 | |
-| - Costco | 50 | COST | 878.40 | 800 | |
+| Individual stocks | 20 | | | | equal |
+| - Berkshire Hathaway | | BRK-B | 452.80 | 900 | |
+| - Costco | | COST | 878.40 | 700 | |
+| - LVMH | | MC.PA | 615.40 | 400 | |
 | Real assets | 20 | | | | |
 | - US REITs | 70 | VNQ | 92.60 | 900 | |
 | - Gold | 30 | IAU | 48.70 | 400 | |

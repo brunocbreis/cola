@@ -95,12 +95,15 @@ function portfolio(src) {
   const tree = [];
   const stack = [{ depth: -1, node: { children: tree } }];
 
-  for (const [rawName, weight, sym, price, value, shared] of rows) {
+  for (const [rawName, weight, sym, price, value, kind] of rows) {
     const depth = (rawName.match(/^[-—>]+/) || [""])[0].length;
     const name = rawName.replace(/^[-—>]+\s*/, "");
     const node = { name };
     if (num(weight) !== null) node.weight = num(weight);
-    if (/^y/i.test(shared || "")) node.shared = true;
+    // The group's kind, as the app names it. Blank is separate targets, which needs no word.
+    // `yes` still reads as shared, which is what the column held when shared was the only kind.
+    if (/^e/i.test(kind || "")) node.equal = true;
+    else if (/^[sy]/i.test(kind || "")) node.shared = true;
     if (sym) { node.sym = sym; node.price = num(price); node.value = num(value); }
 
     while (stack[stack.length - 1].depth >= depth) stack.pop();
@@ -112,6 +115,17 @@ function portfolio(src) {
   // a node that gained children is a group, so drop any stray leaf fields
   (function clean(ns) {
     for (const n of ns) if (n.children) { delete n.sym; delete n.price; delete n.value; clean(n.children); }
+  })(tree);
+  // Weights a group decides rather than the writer, filled in the way the app maintains them on
+  // every write: an equal group's children split it evenly, a shared group's carry no target at
+  // all. Division is exact, so three children hold 33,333… and the level still sums to 100.
+  // Anything typed in those cells is replaced, since in the app they are not typeable.
+  (function decided(ns) {
+    for (const n of ns) if (n.children) {
+      if (n.equal) for (const c of n.children) c.weight = 100 / n.children.length;
+      if (n.shared) for (const c of n.children) delete c.weight;
+      decided(n.children);
+    }
   })(tree);
   return tree;
 }

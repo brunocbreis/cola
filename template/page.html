@@ -370,7 +370,8 @@
       f_shares = nf({minimumFractionDigits:1, maximumFractionDigits:1}),
       f_int    = nf({maximumFractionDigits:0}),
       f_pct1   = nf({style:"percent", minimumFractionDigits:1, maximumFractionDigits:1}),
-      f_pct0   = nf({style:"percent", maximumFractionDigits:0});
+      f_pct0   = nf({style:"percent", maximumFractionDigits:0}),
+      f_pctT   = nf({style:"percent", maximumFractionDigits:1});
 
   // The symbol, which side of the digits it belongs on, and whether a space goes between —
   // all three are the formatter's call: $1,000 against 1 000 € against R$ 1.000.
@@ -407,6 +408,9 @@
   function shares(n){ return f_shares.format(n); }
   function pct1(n){   return f_pct1.format(n / 100); }   // takes 62.5, prints 62.5%
   function pct0(n){   return f_pct0.format(n / 100); }
+  // A target as the app prints one: a decimal when it has one, none when it does not. 50 reads
+  // 50%, and the third an equal group of three holds reads 33,3% rather than a rounded 33%.
+  function pctT(n){   return f_pctT.format(n / 100); }
 
   // One strategy per tab: the same portfolio grouped a different way. Both widgets read
   // whichever is selected, so a reader sees that grouping through to the orders it produces.
@@ -433,9 +437,10 @@
                                : n.sym + " · " + price(n.price);
       html += '<div class="block'+(i===selected ? ' sel':'')+'" data-i="'+i+'">'
            +   '<div class="r1"><div class="nm"><b>'+n.name+'</b>'
-           +     (n.shared?'<span class="tag">SHARED</span>':'')+'</div>'
+           +     (n.shared?'<span class="tag">SHARED</span>':'')
+           +     (n.equal?'<span class="tag">EQUAL</span>':'')+'</div>'
            +     '<div class="pct tnum">'+(n.weight==null ? pct1(curPct)
-                  : pct1(curPct)+' <i>/ '+pct0(Math.round(n.weight))+'</i>')+'</div></div>'
+                  : pct1(curPct)+' <i>/ '+pctT(n.weight)+'</i>')+'</div></div>'
            +   (n.weight==null?'':'<div class="fill"><i class="'+(over?'over':'')
                   +'" style="width:'+(over?100:fill)+'%"></i></div>')
            +   '<div class="r3"><span class="pv">'+preview+'</span>'
@@ -459,8 +464,11 @@
       var b = document.getElementById("crumb").querySelector(".back");
       if(b) b.addEventListener("click", function(e){ e.stopPropagation(); up(); });
     }
-    document.getElementById("tsum").textContent = sumW
-      ? t(TL.label_targets, {sum: pct0(Math.round(sumW))}) : (TL.label_no_targets || "");
+    // Inside an equal group the targets are Cola's and always sum to 100, so the readout would
+    // answer a question the level cannot be in. The app leaves it out there; so does this.
+    var inEqual = path.length > 0 && path[path.length-1].equal;
+    document.getElementById("tsum").textContent = inEqual ? ""
+      : sumW ? t(TL.label_targets, {sum: pct0(Math.round(sumW))}) : (TL.label_no_targets || "");
     document.getElementById("tval").textContent = money(sumV);
 
     var cur = nodes[sel], note = document.getElementById("tnote");
@@ -476,7 +484,8 @@
       note.textContent = (!TOUCH && active !== "tree")
         ? t(pick("note_dormant"), {groups: c.g, holdings: c.h})
         : cur && cur.children
-          ? t(pick(cur.shared ? "note_shared" : "note_group"), {name: cur.name})
+          ? t(pick(cur.shared ? "note_shared" : cur.equal ? "note_equal" : "note_group"),
+              {name: cur.name})
           : pick("note_leaf");
     }
 
@@ -528,7 +537,7 @@
       ns.forEach(function(n){ if(n.children){ names.push(n.name); walk(n.children); } });
     })(STRATS.reduce(function(a, st){ return a.concat(st.tree); }, []));
 
-    ["note_group", "note_shared"].forEach(function(k){
+    ["note_group", "note_shared", "note_equal"].forEach(function(k){
       var tpl = pick(k); if(!tpl) return;
       names.forEach(function(nm){ out.push(t(tpl, {name: nm})); });
     });
