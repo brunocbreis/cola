@@ -1,9 +1,10 @@
 # Publishing
 
-Live at **https://brunocbreis.github.io/cola/**
+Live at **https://cola.brunoreis.eu/**
 
 Hosted on GitHub Pages from the `main` branch, root folder. The repo is
-`brunocbreis/cola`.
+`brunocbreis/cola`. The old address, `brunocbreis.github.io/cola/`, now redirects
+here with a 301, so links already handed out keep working.
 
 ## Updating it
 
@@ -24,7 +25,7 @@ A Pages build failed silently once and left the site two days stale on a commit
 that had pushed cleanly, so a green `git push` is not evidence the site changed.
 
 ```sh
-curl -sI https://brunocbreis.github.io/cola/ | grep -i last-modified
+curl -sI https://cola.brunoreis.eu/ | grep -i last-modified
 gh api repos/brunocbreis/cola/pages/builds/latest --jq '"\(.status) \(.commit[0:7]) \(.error.message // "-")"'
 ```
 
@@ -59,8 +60,16 @@ inline, so the page makes zero external requests. GitHub Pages serves the one fi
 `content/`, `template/`, and `build.mjs` also live in the repo. They are the source the
 page is generated from, and are harmless to serve.
 
-## A domain, later
+## The domain
 
-Buy one anywhere, then in the repo's Settings → Pages → Custom domain, enter it and add
-a CNAME record at your registrar pointing to `brunocbreis.github.io`. GitHub issues the
-TLS certificate. Nothing about the page changes.
+`cola.brunoreis.eu`, set in the repo's Settings → Pages → Custom domain on 20 August
+2026, with a CNAME record at the registrar pointing to `brunocbreis.github.io`. GitHub
+issued the TLS certificate and enforces HTTPS.
+
+Setting it wrote a `CNAME` file into the root of this repo, holding the domain and
+nothing else. **Leave it there.** Pages reads that file on every build, so deleting it —
+or letting a build drop it — takes the custom domain off and sends the site back to the
+`github.io` address. It is the one file here that is configuration rather than content.
+
+Nothing about the page itself changed. `index.html` makes no external requests, so it
+does not care what it is served from.
