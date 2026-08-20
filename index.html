@@ -70,7 +70,11 @@
   .tab:focus-visible{outline:none;border-color:var(--secondary)}
   .scap{font-size:13px;color:var(--tertiary);margin-bottom:14px;text-wrap:pretty;max-width:52em}
 
-  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  /* align-content:start is what keeps a block a block. The widget holds room for the deepest
+     level anyone can open, and grid's default would hand that spare room to the rows — so a
+     level with two holdings drew two tall blocks and a level with four drew four short ones.
+     The app has no such behaviour: a block is one size, and a short level simply ends sooner. */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
   .block{display:flex;flex-direction:column;gap:8px;border:1px solid var(--separator);
          border-radius:var(--r);padding:12px;transition:background .12s,border-color .12s}
   .block.sel{border-color:var(--secondary);background:var(--well)}
@@ -656,11 +660,15 @@
   }
 
   // Drilling into a group with fewer holdings would otherwise shorten the grid and, on a
-  // centred screen, pull everything above it downward. The grid keeps the height of the
-  // deepest level anyone can open, measured as it would actually render.
+  // centred screen, pull everything above it downward. So room is kept for the deepest level
+  // anyone can open, measured as it would actually render — but on the widget rather than on
+  // the grid. Held on the grid, the spare room went into the rows and the blocks changed size
+  // level by level. Held here, the rows keep their own height, the foot stays under the last
+  // block as it does in the app, and a shallow level's slack sits below all of it.
   function reserveGrid(){
     var host = document.getElementById("tgrid"); if(!host) return;
-    host.style.minHeight = "0";
+    var body = host.parentNode;
+    body.style.minHeight = "0";
     var probe = host.cloneNode(false);
     probe.removeAttribute("id");
     probe.style.position = "absolute";
@@ -675,7 +683,11 @@
       tall = Math.max(tall, probe.getBoundingClientRect().height);
     });
     probe.parentNode.removeChild(probe);
-    host.style.minHeight = Math.ceil(tall) + "px";
+    // Everything else in the widget — tabs, caption, breadcrumb, foot — already holds a height of
+    // its own, so what sits around the grid measures the same at every level and can be measured
+    // once, here, at whichever level happens to be showing.
+    var rest = body.getBoundingClientRect().height - host.getBoundingClientRect().height;
+    body.style.minHeight = Math.ceil(rest + tall) + "px";
   }
 
   function reserveAll(){

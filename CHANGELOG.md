@@ -2,6 +2,26 @@
 
 Newest first. One entry per published change to the site.
 
+## A block is one size — 7 August 2026
+
+Going into a group made the blocks taller, and coming back out made them shorter. The app
+has no such behaviour: a block is one size, and a level with two holdings shows two of them
+and ends sooner. The site now agrees.
+
+- The cause was where the room was kept. The widget holds height for the deepest level
+  anyone can open, so that opening a shallow one does not pull the screen upward, and that
+  reservation sat on the grid — where CSS grid's default hands spare room to the rows. Four
+  holdings drew four short blocks, two drew two tall ones.
+- The reservation moved to the widget, and the grid keeps its rows at their own height. A
+  block is 90px at every level of every portfolio now, at every window width.
+- The foot line follows the last block again instead of being pushed to the bottom of the
+  reserved space, which is where the app puts it. The slack a shallow level leaves sits
+  under all of it, out of the way.
+- Nothing above or below moved: the widget measures the same at every depth, as before.
+- A shared group's children stay shorter than other blocks by the height of the target bar,
+  since they have no target and so no bar. That is the app's own arrangement, not a
+  leftover from this.
+
 ## An equal-weight group in the examples — 7 August 2026
 
 The app grew a third kind of group, where the children split the target evenly and Cola
