@@ -108,6 +108,10 @@
   .ledger{width:390px;max-width:100%;margin:0 0 10px;
           border:1px solid var(--separator);border-radius:12px;background:var(--well);
           padding:11px 12px 0;pointer-events:none;opacity:.72;
+          /* A picture, so its words are not words: a drag through the paragraphs below used to
+             sweep up the tickers and totals with them, and pasting the sentence brought a
+             receipt along. pointer-events already refused the clicks; this refuses the range. */
+          -webkit-user-select:none;user-select:none;
           /* Pixel stops, not percentages: the fade is a distance from the top edge, so the
              first rows stay legible whether the run has one order or six. */
           -webkit-mask-image:linear-gradient(#000 60px,rgba(0,0,0,.55) 120px,transparent 200px);
