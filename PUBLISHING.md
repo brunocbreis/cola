@@ -18,6 +18,19 @@ git add -A && git commit -m "copy edits" && git push
 The live site updates about a minute after the push. GitHub rebuilds it
 automatically — there is nothing to click.
 
+## Then check it
+
+A Pages build failed silently once and left the site two days stale on a commit
+that had pushed cleanly, so a green `git push` is not evidence the site changed.
+
+```sh
+curl -sI https://brunocbreis.github.io/cola/ | grep -i last-modified
+gh api repos/brunocbreis/cola/pages/builds/latest --jq '"\(.status) \(.commit[0:7]) \(.error.message // "-")"'
+```
+
+If a build errors, `gh api -X POST repos/brunocbreis/cola/pages/builds` requests
+a fresh one.
+
 ## Keeping the history readable
 
 Two habits keep the log worth reading:
