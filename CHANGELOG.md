@@ -2,6 +2,18 @@
 
 Newest first. One entry per published change to the site.
 
+## The download works — 20 August 2026
+
+Cola is published on Glaze, so screen 6 stops promising and starts pointing.
+
+- The button links to the listing. It had been held at `#`, which the builder renders as
+  disabled, under a line reading "Not published yet". Both are gone.
+- It opens in a new tab. The button is the one thing on the page that leaves the site, and
+  a visitor who clicks it should still have the page they were reading when they come back.
+  `rel="noopener noreferrer"` goes with the target. A disabled button gets neither, since it
+  is going nowhere.
+- "will be free to download" reads in the present tense now that it is true.
+
 ## A block is one size — 7 August 2026
 
 Going into a group made the blocks taller, and coming back out made them shorter. The app

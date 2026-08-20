@@ -266,8 +266,12 @@ function build() {
     inner += prose;
     if (meta.button) {
       const off = !meta.button_href || meta.button_href === "#";
+      // A live button goes somewhere else entirely, so it opens a tab rather than replacing the
+      // deck — a visitor who clicks it still has the page they were reading. A disabled one is
+      // going nowhere and gets neither. rel goes with target, always.
       inner += `\n      <a class="btn" id="dl" href="${esc(meta.button_href || "#")}"` +
-               `${off ? ` aria-disabled="true"` : ""}>${ARROW} ${esc(meta.button)}</a>`;
+               `${off ? ` aria-disabled="true"` : ` target="_blank" rel="noopener noreferrer"`}` +
+               `>${ARROW} ${esc(meta.button)}</a>`;
       if (meta.button_note) inner += `\n      <p class="req">${inline(meta.button_note)}</p>`;
     }
 
